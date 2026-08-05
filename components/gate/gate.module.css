@@ -1,0 +1,173 @@
+/* The gate — layout. Two columns: the form on the left, the map on the right.
+
+   A `@container` NEVER styles its own container: the condition applies to the
+   DESCENDANTS of the element carrying `container-type`, never to that element.
+   The first version put `container-type` on `.gate` and then styled `.gate`
+   inside `@container gate (...)`; that rule was never applied — the gate stayed
+   on one column — while the rule on its descendant `.plan` was, so the form
+   ended up centred with the map STACKED BELOW IT, with no error anywhere.
+
+   Hence two elements: `.frame` MEASURES, `.gate` REACTS. A container query and
+   not a media query, because a media query measures the WINDOW: the day this
+   gate appears inside a panel it would take the "wide" layout at 400 px and
+   crush the fields to zero. */
+
+.frame {
+  min-height: 100dvh;
+  background: var(--bg);
+  /* It MEASURES, it lays out nothing. See above. */
+  container-type: inline-size;
+  container-name: gate;
+}
+
+.gate {
+  min-height: 100dvh;
+  display: grid;
+  /* One column by default: the PHONE is the normal case. */
+  grid-template-columns: 1fr;
+}
+
+/* The map disappears below 900 px: on a phone it would steal the form's room
+   for a picture. `display: none` and not `visibility` — it must be neither read
+   by a screen reader nor painted. */
+.plan {
+  display: none;
+}
+
+@container gate (min-width: 900px) {
+  .gate {
+    /* The form keeps a reading width, the map takes the rest. */
+    grid-template-columns: minmax(420px, 42%) 1fr;
+  }
+
+  .plan {
+    display: block;
+  }
+}
+
+/* The form column. */
+
+.column {
+  display: grid;
+  /* The form is vertically centred, the footer rule stays at the bottom. */
+  grid-template-rows: auto 1fr auto;
+  gap: 32px;
+  padding: 32px;
+  background: var(--paper);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* 44px is a FLOOR, not a taste. The mark is an inked isometric drawing, and
+   below roughly 48px its three roofs merge into a single blue mass — measured
+   on a contact sheet at 16, 20, 24, 32, 48 and 64px. The glyph it replaced sat
+   at 18px, which is exactly where this drawing stops reading. `width: auto`
+   keeps the drawing's own 231x168 proportion: forcing a square would squash a
+   building that is wider than it is tall. */
+.brandMark {
+  width: auto;
+  height: 44px;
+}
+
+.center {
+  display: grid;
+  align-content: center;
+  justify-items: stretch;
+  width: min(380px, 100%);
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-family: var(--typeface-serif);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text-1);
+}
+
+.subtitle {
+  margin: 0 0 28px;
+  font-size: 14px;
+  line-height: 1.5;
+  /* `--text-2` and never `--text-3`: this line carries information, and the
+     tool is read in daylight. */
+  color: var(--text-2);
+}
+
+.fields {
+  display: grid;
+  gap: 18px;
+}
+
+.footerRule {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.toggle {
+  margin: 20px 0 0;
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: center;
+}
+
+.link {
+  color: var(--accent-text);
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+/* The alert. The system has two states only — success and failure — so there is
+   no third tone here. */
+
+.alert {
+  margin: 0 0 18px;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--failure) 32%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--failure) 7%, transparent);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--failure-text);
+}
+
+.notice {
+  margin: 0 0 18px;
+  padding: 11px 13px;
+  border: 1px solid var(--border-1);
+  border-radius: 10px;
+  background: var(--surface-1);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+/* The map half. */
+
+.planFrame {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-left: 1px solid var(--border-1);
+  background: var(--surface-2);
+}
+
+.planSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+

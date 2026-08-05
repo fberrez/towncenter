@@ -1,0 +1,113 @@
+/* The drifting world map. */
+
+.worldmap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* The drift: one transform on one group, so the browser composites it on the
+   GPU and recalculates no layout. `translate3d` forces the layer; without it
+   Safari repaints the whole field every frame.
+
+   Three minutes for one world width. Deliberately SLOW: it should feel like
+   movement without the eye ever following it away from the form. */
+
+.drift {
+  animation: drift 180s linear infinite;
+  will-change: transform;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    /* Exactly one field width: the second copy then takes the place of the
+       first and the reset to zero is invisible. */
+    transform: translate3d(calc(var(--width) * -1px), 0, 0);
+  }
+}
+
+.land {
+  /* `--text-4` is the decorative tone and vanished on `--surface-2`.
+     `--text-3` stays quiet — the map is a background — but visible. */
+  fill: var(--text-3);
+  opacity: 0.55;
+}
+
+/* The blue dots light up, hold, then fade.
+
+   NO `filter` HERE: IT FROZE THE RENDERER. The halo used to be a
+   `filter: drop-shadow`, and a filter on an ANIMATED element forbids GPU
+   compositing — the browser repaints the whole layer every frame, and that
+   layer is half the screen with 2 613 dots in it. The tab became unresponsive.
+   The halo is a SECOND CIRCLE instead: one more shape to paint once beats one
+   filter to recompute sixty times a second. */
+
+.city,
+.halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: light-up 15s ease-in-out infinite;
+}
+
+.city {
+  fill: var(--accent-mark);
+}
+
+.halo {
+  fill: var(--accent-mark);
+  /* Paler and slower to rise: that delay is what reads as a dot lighting up
+     rather than a disc appearing. */
+  opacity: 0;
+  animation-name: halo;
+}
+
+@keyframes halo {
+  0%,
+  70%,
+  100% {
+    opacity: 0;
+    scale: 0.3;
+  }
+  8%,
+  52% {
+    opacity: 0.22;
+    scale: 1;
+  }
+}
+
+@keyframes light-up {
+  /* Dark for most of the cycle: a dozen dots glowing permanently make a
+     Christmas tree, not a survey. */
+  0%,
+  70%,
+  100% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  8%,
+  52% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* Slow permanent motion in peripheral vision is what triggers vestibular
+   discomfort. The map STAYS, it stops moving, and the dots stay lit rather than
+   blinking. */
+
+@media (prefers-reduced-motion: reduce) {
+  .drift {
+    animation: none;
+  }
+
+  .city {
+    animation: none;
+    opacity: 0.85;
+    scale: 1;
+  }
+}

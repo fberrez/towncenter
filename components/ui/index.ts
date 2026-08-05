@@ -1,0 +1,65 @@
+// `components/ui/` never imports `maplibre-gl`, a source module or the
+// database: only the pure `@/lib` modules, so a client component using a
+// primitive does not pull the Postgres driver into the browser bundle.
+
+export { Tag, type TagProps } from "./Tag";
+export { Panel, type PanelProps } from "./Panel";
+export { Button, type ButtonProps } from "./Button";
+
+export { Loot, type LootProps } from "./Loot";
+export { RollingAmount, type RollingAmountProps } from "./RollingAmount";
+export { Gauge, type GaugeProps } from "./Gauge";
+
+export {
+  Difficulty,
+  type DifficultyProps,
+  type BandKey,
+  type ResistanceBand,
+  RESISTANCE_BANDS,
+  resistanceBand,
+  resistanceFromOdds,
+  roundTo5,
+} from "./Difficulty";
+
+export { RarityTag, type RarityTagProps, RankDot, type RankDotProps } from "./RarityTag";
+export { StreakCard, type StreakCardProps } from "./StreakCard";
+export { LevelCard, type LevelCardProps } from "./LevelCard";
+export { Fact, type FactProps } from "./Fact";
+export {
+  Source,
+  Sources,
+  SourceLegend,
+  SOURCES,
+  SOURCE_ORDER,
+  type SourceKey,
+  type SourceEntry,
+  type SourceProps,
+  type SourcesProps,
+  type SourceLegendProps,
+} from "./Source";
+export { Hold, type HoldProps } from "./Hold";
+export { Stamp, type StampProps } from "./Stamp";
+
+export {
+  Menu,
+  MenuButton,
+  MenuLink,
+  MenuHeading,
+  MenuSeparator,
+  type MenuProps,
+  type MenuButtonProps,
+  type MenuLinkProps,
+} from "./Menu";
+
+export { ThemeToggle, ThemeIcon, useTheme } from "./Toggles";
+// the keys come from `./theme`, which carries no directive: read from
+// `./Toggles`, a server component would get a client reference, not the string.
+export {
+  THEME_STORAGE_KEY,
+  DEFAULT_THEME,
+  THEME_SCRIPT,
+  type Theme,
+} from "./theme";
+
+export { cx, type StyleVars } from "./style";
+export { percent } from "./percent";

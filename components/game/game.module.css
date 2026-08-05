@@ -1,0 +1,722 @@
+/* The game layer — layout only.
+
+   Every colour, size and type class comes from the tokens in `app/globals.css`;
+   this module only places the primitives relative to one another.
+
+   NO LAYOUT `@media` HERE. A media query measures the WINDOW, not the
+   container: a 400 px panel on a 1440 px screen would get the "wide" layout and
+   crush its flexible fields to zero. Every breakpoint goes through
+   `@container`. The only two `@media` in this file ask about
+   `prefers-reduced-motion` and `pointer: coarse`, which describe the user and
+   the device, not a window size.
+
+   Class names are hashed at build time but remain TECHNICAL KEYS: pure ASCII,
+   like `data-rank` or `data-theme`. */
+
+/* The rail never wraps onto several lines — a rail going from 56 to 168 px on a
+   phone eats the map, which is the product. It scrolls horizontally instead and
+   each metric snaps. */
+
+.rail {
+  container-type: inline-size;
+  container-name: rail;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 56px;
+  padding: 0 var(--space-3);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border-1);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  /* The snap point aligns to the SCROLLPORT edge, which falls inside the
+     padding: without this line, snapping to the brand shifted the rail by
+     exactly the padding and clipped the mark. */
+  scroll-padding-inline: var(--space-3);
+  overscroll-behavior-x: contain;
+}
+
+.rail__brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding-right: var(--space-4);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.rail__name {
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.rail__ground {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+/* `flex-shrink: 0` is what keeps the rail together. With `1 1 auto` +
+   `min-width: 0` this block COMPRESSED below its content width instead of
+   letting `.rail` scroll: the metrics overflowed their own container and the
+   toggles painted over the last one, with no error anywhere. It grows (`1`) to
+   push the toggles right when there is room, and never shrinks (`0`). */
+.rail__metrics {
+  display: flex;
+  align-items: stretch;
+  flex: 1 0 auto;
+  gap: 0;
+}
+
+/* Pinned right, and it is an access question. What scrolls out of view here are
+   the only COMMANDS in the rail — the link to the other screen and the toggles
+   — while everything else is a reading. With 331 businesses surveyed, changing
+   theme meant scrolling a horizontal bar.
+
+   Only when the rail can afford it: those commands weigh about 200 px, and
+   pinned inside a 390 px rail they would eat half of it and hide every metric.
+   On a phone they go back to the end of the queue. The switch is measured on
+   the RAIL width, never on the window. */
+.rail__end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+  padding-left: var(--space-5);
+  background: var(--surface-1);
+  /* No `scroll-snap-align`: pinned right, this block is always visible, and the
+     snap point only made the rail slide forty pixels on load. */
+}
+
+@container rail (min-width: 700px) {
+  .rail__end {
+    position: sticky;
+    inset-inline-end: 0;
+    z-index: 1;
+  }
+
+  /* The fade says "there is more", a hard cut says "this is broken". The pinned
+     block is opaque and covers the last metric as soon as the rail overflows;
+     the gradient makes the cut read as intentional. */
+  .rail__end::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    right: 100%;
+    width: 24px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--surface-1));
+  }
+}
+
+.rail__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-2);
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: var(--radius-2);
+  white-space: nowrap;
+  transition: color var(--duration-hover) var(--curve);
+}
+
+.rail__link:hover {
+  color: var(--text-1);
+  background: var(--surface-2);
+}
+
+/* In the rail the toggle is a GLYPH without its label: measured at 1440 px the
+   rail already asks for 1676, and the last metric would slide behind the pinned
+   block. The label stays rendered so a less cramped placement needs no
+   rewiring. */
+.rail__end :global(.toggle) :global(.toggle__label) {
+  display: none;
+}
+
+/* One rail metric: a label, a figure, a provenance line. The provenance is not
+   decorative — it is what stops "42 000 €" being read as money earned. */
+
+/* 12 px either side, not 16: the monospace face is wider at equal size and the
+   five metrics pushed the total to 1637 px on a 1440 px screen. */
+.metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  flex: 0 0 auto;
+  padding: var(--space-2) var(--space-3);
+  border-left: 1px solid var(--border-1);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.metric:first-child {
+  border-left: none;
+}
+
+/* Figure and provenance on the SAME line: three stacked lines would be 71 px
+   and the rail is 56. `nowrap` because a provenance that wraps grows the rail. */
+.metric__row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.metric__value {
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.metric__value--accent {
+  color: var(--accent);
+}
+
+.metric__detail {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.metric__gauge {
+  width: 72px;
+  margin-top: 2px;
+}
+
+/* The celebration banner, for facts that do not deserve a full frame: a call
+   made, a reply received, a tier reached.
+
+   `pointer-events: none`: the banner can never intercept a click on the map. */
+
+.gain {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-5);
+  z-index: 55;
+  transform: translateX(-50%);
+  pointer-events: none;
+  max-width: min(420px, calc(100vw - 2 * var(--space-4)));
+}
+
+.gain__card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--shadow-2);
+  animation: gain-enter var(--duration-short) var(--curve) both;
+}
+
+.gain__points {
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.gain__texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gain__fact {
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+
+.gain__detail {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+@keyframes gain-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
+/* Reduced motion: the banner is placed, not played. The global rule in
+   `globals.css` would already cut the duration; it is repeated here so the
+   intent reads at this spot. */
+@media (prefers-reduced-motion: reduce) {
+  .gain__card {
+    animation: none;
+  }
+}
+
+/* The cluster card. */
+
+.cluster__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.cluster__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cluster__name {
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+
+.cluster__place {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.cluster__loot {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.cluster__hold {
+  margin-top: var(--space-3);
+}
+
+/* Remaining ranks: the colour AND the count, never the colour alone. */
+.cluster__ranks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.cluster__rank {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-2);
+}
+
+.cluster__members {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: var(--space-3);
+  list-style: none;
+  padding: 0;
+}
+
+.cluster__member {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  transition: background var(--duration-hover) var(--curve);
+}
+
+.cluster__member:hover {
+  background: var(--surface-2);
+}
+
+.cluster__member[disabled] {
+  cursor: default;
+}
+
+.cluster__member[disabled]:hover {
+  background: transparent;
+}
+
+.cluster__member-name {
+  flex: 1 1 auto;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.cluster__member-loot {
+  flex: 0 0 auto;
+  color: var(--accent-text);
+}
+
+.cluster__rest {
+  color: var(--text-2);
+  margin-top: var(--space-2);
+}
+
+.cluster__actions {
+  margin-top: var(--space-4);
+}
+
+/* The progression page. Its layout breakpoints query the PANEL holding them,
+   which is what gives the real available width. */
+.page {
+  container-type: inline-size;
+  container-name: page;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+.page__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.page__title {
+  color: var(--text-1);
+}
+
+.page__season {
+  color: var(--text-2);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.section__intro {
+  color: var(--text-2);
+  max-width: 68ch;
+}
+
+/* Tiles reflow on THEIR container's width, never on the window's. */
+.tiles {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
+
+.tiles--two {
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+}
+
+.tile__extra {
+  color: var(--text-2);
+  margin-top: var(--space-2);
+}
+
+/* Tables: `table-layout: fixed` with imposed widths. Automatic columns always
+   overflow once a cell holds a sentence — here a business or sector name.
+   Names are ellipsed, figures are right-aligned and tabular. */
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--border-1);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table th {
+  color: var(--text-2);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: bottom;
+}
+
+.table__name {
+  text-align: left;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 34%;
+}
+
+.table__number {
+  color: var(--text-1);
+  width: 11%;
+}
+
+.table__gold {
+  color: var(--accent-text);
+  width: 15%;
+}
+
+.table tr[data-empty="yes"] td {
+  color: var(--text-3);
+}
+
+.table__note {
+  color: var(--text-2);
+  margin-top: var(--space-2);
+}
+
+/* When cramped, the table reads as a LIST: one row per sector, label left,
+   value right.
+
+   `table-layout: fixed` never gives a column back to its content. That is what
+   makes it safe, and what makes it unreadable when narrow: inside a 324 px
+   panel a figure column gets 36 px for an 80 px header, headers overprint each
+   other and values fall out of the panel.
+
+   The query is on `panel`, THE DIRECT CONTAINER — never the window, never the
+   page: a table dropped into a 400 px column one day must collapse there too.
+   Each cell carries its column label in `data-label`: an ASCII key holding
+   visible text. */
+@container panel (max-width: 560px) {
+  .table,
+  .table tbody,
+  .table tr {
+    display: block;
+    width: auto;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--border-1);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 2px 0;
+    border-bottom: none;
+    text-align: right;
+    /* A value never wraps; the label may, rather than push the figure out of
+       the panel. */
+    white-space: nowrap;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    color: var(--text-2);
+    font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: left;
+    white-space: normal;
+    min-width: 0;
+  }
+
+  /* The name is no longer one cell among others: it is the row title. */
+  .table .table__name {
+    display: block;
+    width: auto;
+    text-align: left;
+    white-space: normal;
+    overflow: visible;
+    color: var(--text-1);
+    margin-bottom: var(--space-1);
+  }
+
+  .table .table__name::before {
+    content: none;
+  }
+
+  .table .table__number,
+  .table .table__gold {
+    width: auto;
+  }
+}
+
+/* Ranking bars (ranks, months). */
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.bar__name {
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar__value {
+  color: var(--text-1);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.bar__value--accent {
+  color: var(--accent-text);
+}
+
+/* When cramped, the label moves above the bar rather than crushing it to zero.
+   The query is on `panel`, THE DIRECT CONTAINER: these bars live in a
+   two-column grid, so the panel is half the page width. */
+@container panel (max-width: 400px) {
+  .bar {
+    grid-template-columns: 1fr auto;
+  }
+  .bar__name {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The model's honesty. */
+
+.honesty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.honesty__count {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-2);
+  background: var(--surface-2);
+}
+
+.honesty__verdict {
+  color: var(--text-1);
+}
+
+.honesty__caveats {
+  margin: 0;
+  padding-left: var(--space-4);
+  color: var(--text-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 68ch;
+}
+
+.honesty__gap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.honesty__gap-value {
+  color: var(--text-1);
+}
+
+/* The log — a zone with NO game in it. Plain text, no rank colours, no icons:
+   that is what keeps it readable cold, six months later. */
+
+.ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ledger__row {
+  display: grid;
+  grid-template-columns: 76px 92px 1fr auto;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-1);
+  min-width: 0;
+}
+
+.ledger__row:last-child {
+  border-bottom: none;
+}
+
+.ledger__date {
+  color: var(--text-2);
+}
+
+.ledger__fact {
+  color: var(--text-2);
+}
+
+.ledger__what {
+  color: var(--text-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ledger__amount {
+  color: var(--accent-text);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Same rule as the bars: the PANEL is measured, not the page. */
+@container panel (max-width: 480px) {
+  .ledger__row {
+    grid-template-columns: 76px 1fr auto;
+  }
+  .ledger__fact {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+}
+
+/* Emptiness, stated without consoling. A zero season shows zero: no tile
+   disappears, no encouragement appears. */
+
+.empty {
+  color: var(--text-2);
+  padding: var(--space-3) 0;
+}
+
+/* Standing in the street, one hand on the phone: touch targets never go below
+   44 px. `pointer: coarse` asks about the DEVICE, not the window, so it is
+   outside the layout media-query trap. */
+@media (pointer: coarse) {
+  .rail__link,
+  .cluster__member {
+    min-height: var(--touch-target);
+  }
+}

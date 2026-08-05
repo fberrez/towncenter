@@ -1,0 +1,45 @@
+{
+  "name": "towncenter",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "node scripts/migrate.mjs && next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:studio": "drizzle-kit studio",
+    "verify": "npm run verify:scoring && npm run verify:game && npm run verify:tenancy && npm run verify:actions",
+    "verify:scoring": "tsx scripts/verify-scoring.mts",
+    "verify:game": "tsx scripts/verify-game.mts",
+    "verify:tenancy": "node --conditions=react-server --import tsx --import ./scripts/bench-gate.mjs scripts/verify-tenancy.mts",
+    "verify:actions": "node --conditions=react-server --import tsx --import ./scripts/bench-gate.mjs scripts/verify-actions.mts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "jose": "^6.2.7",
+    "maplibre-gl": "^5.24.0",
+    "next": "^16.2.12",
+    "postgres": "^3.4.9",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "server-only": "^0.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.19.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "drizzle-kit": "^0.31.10",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

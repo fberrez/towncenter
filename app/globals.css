@@ -1,0 +1,2239 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   TOWNCENTER — art-direction tokens.
+
+   The page is a LIT surface, not a flat fill. One light source, top left, at
+   --lx/--ly. Everything else follows from it: the paper gradient, the
+   direction of every shadow, and which edges catch the light.
+
+   Glass appears ONLY where something really passes behind: a panel over the
+   map, a row that lifts, a floating business sheet. A translucent panel over
+   nothing is just a grey rectangle.
+
+   Two themes, switched by the `data-theme` attribute on <html>. That attribute
+   and its value are TECHNICAL KEYS: ASCII, unaccented. An accented
+   `data-theme` once killed dark mode silently — no error, no warning, it just
+   stopped working. Same rule for the storage key (`towncenter-theme`), for
+   `data-rank`, `data-band`, and every class name in this file.
+
+   LIGHT is the default: a plan laid on a table.
+
+   Non-collision rules:
+   1. ONE accent colour, the cobalt `--accent`. It carries links, actions, the
+      map dot and money. Nothing else is coloured by default.
+   2. RANK is no longer read from colour, it is read from the DIAMETER and from
+      its name spelled out. The five `--rank-N` tokens survive, all equal to the
+      accent — see the block that declares them.
+   3. The resistance ramp only appears INSIDE a gauge. Never in text, never on
+      the map.
+   4. No "warning" colour. Two states only: success, failure.
+
+   > EVERY TOKEN READ BACK BY `components/map/colors.ts` MUST BE A LITERAL HEX
+   > OR `rgb()`.
+   > `readPalette()` reads these values with `getComputedStyle` and hands them
+   > to MapLibre AS IS. An unregistered custom property does not resolve its
+   > functions: `getComputedStyle` returns the string `color-mix(in oklch, ...)`
+   > or `oklch(0.47 0.175 258)` verbatim, and MapLibre's colour parser knows
+   > neither. The layer is then ignored — no exception, no warning, nothing in
+   > the console. The original OKLCH values stay as COMMENTS and the token
+   > carries the hex. The thirteen tokens involved: `--bg`, `--surface-1`,
+   > `--border-2`, `--text-1/2/3`, `--accent`, `--success`, `--failure`,
+   > `--modal-veil` and the five `--rank-N`.
+   ========================================================================== */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* The light source. Exactly one, and the whole system aims at it. */
+  --lx: 18%;
+  --ly: -8%;
+
+  /* --------------------------------------------------------------------
+     INK ON PAPER.
+
+     Four tones, black to ghost. WCAG 2.1 ratios measured against `--bg`
+     (#edeff2), the darker of the two surfaces the gradient crosses, so the
+     worst case:
+       --text-1  #101316  ->  16.2:1
+       --text-2  #585b5f  ->   5.9:1
+       --text-3  #888b8e  ->   3.0:1   BELOW AA at small sizes
+       --text-4  #b5b7ba  ->   1.7:1   decorative, never useful text
+
+     Towncenter is read STANDING IN THE STREET, on a phone, often in sunlight.
+     `--text-3` and `--text-4` NEVER carry required information — not a
+     calibration note, not a source, not a "not recorded". They are for
+     separators, empty-state templates and redundant labels. Anything meant to
+     be read uses `--text-2`.
+     -------------------------------------------------------------------- */
+  --text-1: #101316; /* oklch(0.185 0.008 250) */
+  --text-2: #585b5f; /* oklch(0.47  0.007 250) */
+  --text-3: #888b8e; /* oklch(0.635 0.006 250) */
+  --text-4: #b5b7ba; /* oklch(0.78  0.004 250) */
+
+  --border-1: #d7d9dc; /* oklch(0.885 0.004 250) — the hairline */
+  --border-2: #b9bcc0; /* the heavier hairline, for what must stand out */
+
+  /* --------------------------------------------------------------------
+     THE PAPER.
+
+     `--paper` is the GRADIENT (radial light + linear ground) set on <body>.
+     `--bg` is its FLAT colour, the end of that gradient: MapLibre reads it,
+     overscroll shows it, and `theme-color` carries it. The two cannot merge —
+     a gradient handed to `circle-color` paints nothing.
+     -------------------------------------------------------------------- */
+  --bg: #edeff2; /* oklch(0.951 0.005 256) */
+  --paper:
+    radial-gradient(120% 92% at var(--lx) var(--ly), #ffffff, transparent 60%),
+    linear-gradient(158deg, #fdfdfe, #edeff2);
+  --surface-1: #f7f7f8; /* the opaque plate: a tile, a sheet */
+  --surface-2: #e6e8ec; /* row hover */
+  --surface-3: #dcdee2; /* a gauge track */
+
+  /* --------------------------------------------------------------------
+     THE ACCENT, AND NOTHING ELSE.
+
+     Cobalt. It carries links, actions, the business dot on the map and money.
+     Measured against `--bg`: 6.1:1 in light mode.
+
+     `--accent-mark` is NOT `--accent`, and the difference only shows in dark
+     mode. A chart mark — a map dot, a gauge segment — has to sit in the OKLCH
+     0.48-0.67 band to stay readable as a SHAPE on a dark ground. The dark
+     accent sits at L 0.76: right for text, washed out as a dot.
+     `--accent-mark` is the same hue brought back down to L 0.62. In light mode
+     the two coincide.
+     -------------------------------------------------------------------- */
+  --accent: #0055ba; /* oklch(0.47 0.175 258) */
+  --accent-strong: #00429a;
+  --accent-mark: #0055ba;
+  --accent-veil: rgb(0 85 186 / 0.14);
+  --accent-text: #0055ba;
+
+  /* Two states, never three. Measured against `--bg`: 5.6:1 and 5.7:1. */
+  --success: #006e30; /* oklch(0.47 0.13 150) */
+  --failure: #b32228; /* oklch(0.50 0.18 25)  */
+  --success-text: #006e30;
+  --failure-text: #b32228;
+  --focus: #0055ba;
+
+  /* --------------------------------------------------------------------
+     THE GLASS.
+
+     A translucent plate, edges lit on the light side and shaded on the other,
+     plus its cast shadow. These four tokens go together: `--glass-bg` without
+     `--glass-light` is a grey rectangle.
+     -------------------------------------------------------------------- */
+  --glass-bg: linear-gradient(158deg, rgb(255 255 255 / 0.88), rgb(255 255 255 / 0.46));
+  --glass-light: rgb(255 255 255 / 0.96);
+  --glass-light-2: rgb(255 255 255 / 0.7);
+  --glass-shadow: rgb(0 85 186 / 0.12);
+  --glass-solid: rgb(255 255 255 / 0.97); /* fallback without backdrop-filter */
+  --glass-cast:
+    0 2px 3px -2px rgb(36 47 61 / 0.16),
+    0 18px 38px -22px rgb(26 46 76 / 0.34);
+
+  /* The two halos of the lighting rig. */
+  --halo-1: rgb(255 255 255 / 0.85);
+  --halo-2: rgb(0 85 186 / 0.055);
+
+  /* --------------------------------------------------------------------
+     THE BASEMAP, STRIPPED.
+
+     No veil is laid over the tiles. A veil flattens: streets lose their
+     hierarchy along with their tint. The 55 positron layers are REPAINTED one
+     by one, by `stripBasemap()`. Each value below is the colour of one layer
+     family, and the ratio between them is the only thing that makes a plan
+     readable.
+
+     The street is LIGHTER than the ground: on a plan laid on a table you
+     follow the streets with a finger, and their network has to read as the
+     negative of the buildings.
+     -------------------------------------------------------------------- */
+  --map-water: #dfe4ea;
+  --map-buildings: #e4e6ea;
+  --map-green: #e5e8e6;
+  --map-street: #ffffff;
+  --map-street-edge: #dcdee2;
+  --map-rail: #e2e4e8;
+  --map-boundary: #c8cbd0;
+  --map-label: #585b5f;
+  --map-label-halo: #edeff2;
+
+  /* --------------------------------------------------------------------
+     RANKS — they no longer carry a colour.
+
+     The five tokens survive, all equal to the accent. Rank stays double
+     encoded: by the DIAMETER of the dot (8 px at rank I, 20 px at rank V), by
+     the RING from IV up, and by its NAME spelled out. What went is the fifth
+     hue — colour was the weakest of the four channels, surviving neither
+     colour-blindness nor sunlight on a phone.
+
+     The tokens are kept rather than tearing `data-rank` out of twenty
+     components: the day the scale becomes coloured again, it reconnects HERE,
+     in five lines.
+     -------------------------------------------------------------------- */
+  --rank-1: #0055ba;
+  --rank-1-veil: rgb(0 85 186 / 0.08);
+  --rank-2: #0055ba;
+  --rank-2-veil: rgb(0 85 186 / 0.08);
+  --rank-3: #0055ba;
+  --rank-3-veil: rgb(0 85 186 / 0.1);
+  --rank-4: #0055ba;
+  --rank-4-veil: rgb(0 85 186 / 0.12);
+  --rank-5: #0055ba;
+  --rank-5-veil: rgb(0 85 186 / 0.14);
+
+  /* Resistance — gauge tints only, never text. A cool -> warm ramp rather
+     than green -> red: on this paper a plain green was the only saturated
+     patch on screen. */
+  --resistance-easy: #006e30;
+  --resistance-approachable: #4a7a2b;
+  --resistance-solid: #8a6a12;
+  --resistance-hard: #c4530f;
+  --resistance-impregnable: #b32228;
+
+  --shadow-1: 0 1px 2px rgb(36 47 61 / 0.1);
+  --shadow-2: 0 2px 3px -2px rgb(36 47 61 / 0.16), 0 18px 38px -22px rgb(26 46 76 / 0.34);
+  --shadow-3: 0 4px 6px -3px rgb(36 47 61 / 0.2), 0 28px 60px -28px rgb(26 46 76 / 0.45);
+  --modal-veil: rgb(16 19 22 / 0.42);
+}
+
+/* --------------------------------------------------------------------------
+   DARK. NOT light inverted.
+
+   The two quietest tones have to come UP on a dark ground: transposing the
+   light values as they are would make 9-10 px labels unreadable. And the
+   accent rises to L 0.76, which is right for text and washed out as a dot —
+   hence `--accent-mark`, which stays at L 0.62.
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Measured against `--bg` (#080a0d): 16.9 / 8.9 / 6.5 / 4.5:1. */
+  --text-1: #ebedef; /* oklch(0.945 0.003 255) */
+  --text-2: #abaeb2; /* oklch(0.75  0.006 255) */
+  --text-3: #909499; /* oklch(0.665 0.008 255) */
+  --text-4: #76797e; /* oklch(0.575 0.008 255) */
+
+  --border-1: #2b3037;
+  --border-2: #3c424a;
+
+  --bg: #080a0d; /* oklch(0.142 0.008 256) */
+  --paper:
+    radial-gradient(118% 90% at var(--lx) var(--ly), #272e39, transparent 58%),
+    linear-gradient(158deg, #15191e, #080a0d);
+  --surface-1: #22262c;
+  --surface-2: #2b3037;
+  --surface-3: #343a42;
+
+  /* 9.2:1 as text; the mark drops to 5.5:1 but holds as a SHAPE. */
+  --accent: #6eb5ff; /* oklch(0.76 0.135 252) */
+  --accent-strong: #9acdff;
+  --accent-mark: #3689dd; /* oklch(0.62 0.135 252) */
+  --accent-veil: rgb(110 181 255 / 0.2);
+  --accent-text: #6eb5ff;
+
+  --success: #4eb068; /* 7,3:1 */
+  --failure: #e66e68; /* 6,4:1 */
+  --success-text: #4eb068;
+  --failure-text: #e66e68;
+  --focus: #6eb5ff;
+
+  --glass-bg: linear-gradient(158deg, rgb(255 255 255 / 0.11), rgb(255 255 255 / 0.035));
+  --glass-light: rgb(255 255 255 / 0.3);
+  --glass-light-2: rgb(255 255 255 / 0.13);
+  --glass-shadow: rgb(0 0 0 / 0.28);
+  --glass-solid: rgb(38 42 48 / 0.97);
+  --glass-cast:
+    0 2px 4px -2px rgb(0 0 0 / 0.5),
+    0 22px 46px -24px rgb(0 0 0 / 0.8);
+
+  --halo-1: rgb(155 187 221 / 0.16);
+  --halo-2: rgb(110 181 255 / 0.13);
+
+  /* Same hierarchy as light, flipped: the street stays the lightest tone on
+     the map, the ground the darkest. */
+  --map-water: #0e1319;
+  --map-buildings: #171b21;
+  --map-green: #10151a;
+  --map-street: #2b313a;
+  --map-street-edge: #171b21;
+  --map-rail: #1b2027;
+  --map-boundary: #343a42;
+  --map-label: #abaeb2;
+  --map-label-halo: #080a0d;
+
+  --rank-1: #3689dd;
+  --rank-1-veil: rgb(54 137 221 / 0.12);
+  --rank-2: #3689dd;
+  --rank-2-veil: rgb(54 137 221 / 0.12);
+  --rank-3: #3689dd;
+  --rank-3-veil: rgb(54 137 221 / 0.14);
+  --rank-4: #3689dd;
+  --rank-4-veil: rgb(54 137 221 / 0.16);
+  --rank-5: #3689dd;
+  --rank-5-veil: rgb(54 137 221 / 0.18);
+
+  --resistance-easy: #4eb068;
+  --resistance-approachable: #86ab4b;
+  --resistance-solid: #c2a03f;
+  --resistance-hard: #cd632d;
+  --resistance-impregnable: #e66e68;
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 2px 4px -2px rgb(0 0 0 / 0.5), 0 22px 46px -24px rgb(0 0 0 / 0.8);
+  --shadow-3: 0 4px 8px -3px rgb(0 0 0 / 0.6), 0 32px 64px -28px rgb(0 0 0 / 0.9);
+  --modal-veil: rgb(4 5 7 / 0.68);
+}
+
+/* --------------------------------------------------------------------------
+   Rhythm, radii, motion. Shared by both themes.
+   -------------------------------------------------------------------------- */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* --------------------------------------------------------------------
+     RADII ARE HALVED.
+
+     At 14-24 px a button reads as a KEY on a keypad. This system aims at the
+     opposite — a plate, a row, a hairline — and a 24 px radius would make a
+     bubble of it. 11 px on a plate, 2 px on a focus ring, and the full round
+     reserved for what is genuinely round.
+     -------------------------------------------------------------------- */
+  --radius-1: 2px;
+  --radius-2: 8px;
+  --radius-3: 11px;
+  --radius-4: 13px;
+  --radius-dot: 999px;
+  /* The system hairline. ONE pixel: it is what separates a survey from a game. */
+  --hairline: 1px;
+
+  /* Default easing curve. */
+  --curve: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-hover: 160ms;
+  --duration-short: 240ms;
+  --duration-medium: 300ms;
+  --duration-long: 450ms;
+  --duration-amount: 700ms;
+  --duration-ripple: 900ms;
+
+  /* Minimum touch target. This is a field tool: used in the street, one hand
+     on the phone. It does not move by a pixel when the art direction changes. */
+  --touch-target: 44px;
+}
+
+/* The bridge to Tailwind 4: `bg-surface-1`, `text-text-2`, `font-serif`. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border-1: var(--border-1);
+  --color-border-2: var(--border-2);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-text-4: var(--text-4);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-success: var(--success);
+  --color-failure: var(--failure);
+  --font-serif: var(--typeface-serif);
+  --font-mono: var(--typeface-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* The FLAT colour, so overscroll never flashes white over the gradient. */
+html {
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--paper);
+  /* The gradient follows the VIEWPORT, not the document: otherwise the light
+     source scrolls down with the page and the room starts to sway. */
+  background-attachment: fixed;
+  color: var(--text-1);
+  font-family: var(--typeface-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection {
+  background: var(--accent-veil);
+}
+
+/* --------------------------------------------------------------------------
+   THE LIGHTING RIG
+
+   Two halos, ABOVE the paper gradient and BELOW all content: this is what
+   gives the glass something to refract. They drift slowly — enough for the
+   surface to be alive, not enough to notice the motion. `aria-hidden` on the
+   HTML side: it is light, not content.
+   -------------------------------------------------------------------------- */
+.rigging {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.rigging i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.rigging__l1 {
+  left: -6%;
+  top: -32%;
+  width: 62%;
+  aspect-ratio: 1.5;
+  background: radial-gradient(closest-side, var(--halo-1), transparent 72%);
+  animation: halo-drift 21s ease-in-out infinite alternate;
+}
+
+.rigging__l2 {
+  right: -10%;
+  top: 2%;
+  width: 44%;
+  aspect-ratio: 1.3;
+  background: radial-gradient(closest-side, var(--halo-2), transparent 70%);
+  animation: halo-drift 27s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes halo-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2.5%, 3%, 0) scale(1.09);
+  }
+}
+
+/* Non-negotiable rule on figures: amounts are compared in a column, and a
+   narrow "1" shifts the column and makes the table unreadable.
+
+   IBM Plex Mono satisfies it by construction. The rule stays because it also
+   covers the one place the system is not mono: the serif of titles and prose,
+   which can carry a date or an amount mid-sentence. */
+.tnum,
+table,
+[data-number],
+.t-hero,
+.t-display,
+.t-title-1,
+.t-title-2,
+.t-title-3,
+.t-prose,
+.t-label,
+.t-micro,
+.t-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--radius-1);
+}
+
+/* The system setting is the only one: there is no in-app motion toggle. Some
+   animations need a DIFFERENT behaviour under reduced motion, not merely a
+   faster one, so they override this rule where they are defined. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+
+   Two families.
+
+   IBM Plex Mono carries the product: body text, labels, tags and EVERY figure.
+   Its fixed pitch aligns columns of amounts for free.
+
+   Source Serif 4 carries what is SAID rather than measured: titles, sentences,
+   verbatim facts, off-grid reasons. Its italic is the system's tone for an
+   empty state or a description.
+
+   LETTERSPACED CAPS ARE A TAG, NOT A TITLE. `.t-label` and `.t-micro` are
+   mono, 9.5 to 10.5 px, with 0.2 em tracking. At that size the tracking is not
+   decorative: without it, 9 px fixed-pitch caps read like a password.
+
+   Sizes are FLUID (`clamp`) for titles only. `clamp` measures the viewport,
+   which is fine for the SIZE of a glyph; what must never depend on the
+   viewport is the LAYOUT — see the container-queries block.
+   ========================================================================== */
+
+.t-hero {
+  font-family: var(--typeface-serif), Georgia, "Times New Roman", serif;
+  font-size: clamp(1.9rem, 1.2rem + 3.2vw, 2.5rem);
+  line-height: 1.14;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.t-display {
+  font-family: var(--typeface-serif), Georgia, "Times New Roman", serif;
+  font-size: clamp(1.35rem, 1rem + 2vw, 1.72rem);
+  line-height: 1.24;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.t-title-1 {
+  font-family: var(--typeface-serif), Georgia, "Times New Roman", serif;
+  font-size: clamp(1.1rem, 0.95rem + 0.7vw, 1.3rem);
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.t-title-2 {
+  font-family: var(--typeface-serif), Georgia, "Times New Roman", serif;
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+/* The only MONO title: the one on a plate, a row, a sheet — a business name, a
+   sector name. It is a survey entry, not a sentence. */
+.t-title-3 {
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.90625rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.t-body {
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.t-body-s {
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+/* Prose: anything that is a SENTENCE. A verbatim fact, an off-grid reason, an
+   explanation of a calculation. Past two lines the serif beats fixed pitch. */
+.t-prose {
+  font-family: var(--typeface-serif), Georgia, "Times New Roman", serif;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  font-weight: 400;
+  text-wrap: pretty;
+}
+
+.t-label {
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.65625rem;
+  line-height: 1.3;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.t-micro {
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.59375rem;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* `.t-mono` is no longer a family of its own — everything is mono. It survives
+   as the "plate value" size: a lone figure, a date, a version. */
+.t-mono {
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.tone-1 {
+  color: var(--text-1);
+}
+.tone-2 {
+  color: var(--text-2);
+}
+/* `--text-3` measures 3.0:1 on `--bg` in light mode, `--text-4` 1.7:1. That is
+   BELOW AA for body text, and this tool is read outdoors. Never for REQUIRED
+   information (a calibration note, a source, a "not recorded"). Separators,
+   empty states and redundant labels only; anything meant to be read uses
+   `--text-2` (5.9:1). */
+.tone-3 {
+  color: var(--text-3);
+}
+.tone-4 {
+  color: var(--text-4);
+}
+.tone-accent {
+  color: var(--accent-text);
+}
+.tone-success {
+  color: var(--success-text);
+}
+.tone-failure {
+  color: var(--failure-text);
+}
+
+/* Accessible but invisible: carries the context the layout gives the eye and a
+   screen reader does not get. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   SURFACES AND LAYOUT
+
+   > A MEDIA QUERY MEASURES THE VIEWPORT, NOT THE CONTAINER.
+   > A map can live in a 400 px column on a 1440 px screen: `min-width: 900px`
+   > applies the "wide" layout there and crushes flexible fields to zero. Every
+   > layout switch in this file goes through `@container`, never `@media`.
+   ========================================================================== */
+
+/* The PLATE: opaque, one hairline, no shadow. The default surface, and it does
+   not float — it lies on the paper. Glass is reserved for what really has
+   something behind it: see `.panel--glass`. */
+.panel {
+  container-type: inline-size;
+  container-name: panel;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+.panel--bare {
+  background: transparent;
+  border-color: transparent;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   THE GLASS, IN A SINGLE DEFINITION.
+
+   Four edges that do not match: those facing the light source (top, left)
+   catch it, the other two take the tinted shadow. That asymmetry is what makes
+   a plate rather than a rectangle.
+
+   Never use it over nothing: a `backdrop-filter` on a flat ground only makes
+   grey. It goes over the map, over a modal, over a row that lifts — never over
+   a page section.
+   -------------------------------------------------------------------------- */
+.glass,
+.panel--glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(15px) saturate(1.6);
+  backdrop-filter: blur(15px) saturate(1.6);
+  border-top: 1px solid var(--glass-light);
+  border-left: 1px solid var(--glass-light-2);
+  border-right: 1px solid var(--glass-shadow);
+  border-bottom: 1px solid var(--glass-shadow);
+  box-shadow: var(--glass-cast);
+}
+
+.panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  min-width: 0;
+}
+
+/* The gutter label. `--text-3` is below AA and that is accepted here: a
+   panel's title is REDUNDANT with its content, never the information itself. */
+.panel__title {
+  color: var(--text-3);
+  min-width: 0;
+}
+
+/* Every grid in this file folds on the width of ITS container. */
+.grid-auto {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  min-width: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Type falls back when the container — not the viewport — gets narrow. */
+@container panel (max-width: 420px) {
+  .t-hero {
+    font-size: 2rem;
+  }
+  .t-display {
+    font-size: 1.625rem;
+  }
+  .t-title-1 {
+    font-size: 1.25rem;
+  }
+}
+
+/* ==========================================================================
+   THE RANK SCALE
+
+   `data-rank` carries 1 to 5 — a KEY, so ASCII. It exposes two local tokens
+   every primitive reads: the colour and its veil.
+
+   Rank is double encoded: DIAMETER, a RING from IV up, and its NAME spelled
+   out. A colour-blind reader gets the size; a poor screen gets the ring; a
+   screen reader gets the name.
+   ========================================================================== */
+
+[data-rank="1"] {
+  --rank-color: var(--rank-1);
+  --rank-veil: var(--rank-1-veil);
+}
+[data-rank="2"] {
+  --rank-color: var(--rank-2);
+  --rank-veil: var(--rank-2-veil);
+}
+[data-rank="3"] {
+  --rank-color: var(--rank-3);
+  --rank-veil: var(--rank-3-veil);
+}
+[data-rank="4"] {
+  --rank-color: var(--rank-4);
+  --rank-veil: var(--rank-4-veil);
+}
+[data-rank="5"] {
+  --rank-color: var(--rank-5);
+  --rank-veil: var(--rank-5-veil);
+}
+
+/* The five resistance bands. ASCII keys, unaccented. */
+[data-band="easy"] {
+  --resistance-tint: var(--resistance-easy);
+}
+[data-band="approachable"] {
+  --resistance-tint: var(--resistance-approachable);
+}
+[data-band="solid"] {
+  --resistance-tint: var(--resistance-solid);
+}
+[data-band="hard"] {
+  --resistance-tint: var(--resistance-hard);
+}
+[data-band="impregnable"] {
+  --resistance-tint: var(--resistance-impregnable);
+}
+
+/* ==========================================================================
+   BUTTON
+
+   No solid bottom bevel. A button is a glass PILL: it lifts 2 px on hover and
+   its cast shadow lengthens, it never squashes. The motion is the same in both
+   directions, which avoids the phantom bottom margin a bevel forces you to
+   reserve.
+
+   Minimum height is the touch target, because the tool is used standing in the
+   street.
+   ========================================================================== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-dot);
+  border: var(--hairline) solid transparent;
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.625rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform var(--duration-medium) var(--curve),
+    box-shadow var(--duration-medium) var(--curve),
+    color var(--duration-hover) var(--curve),
+    background-color var(--duration-hover) var(--curve),
+    border-color var(--duration-hover) var(--curve);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* The PRIMARY action: a glass pill in the accent. It does not fill its ground
+   — that is what keeps it quiet over a map, where a 44 px cobalt slab would be
+   the loudest thing on screen. */
+.button--primary {
+  color: var(--accent);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  backdrop-filter: blur(12px) saturate(1.5);
+  border-color: color-mix(in oklch, var(--accent) 22%, transparent);
+  border-top-color: var(--glass-light);
+  box-shadow: inset 0 1px 0 var(--glass-light), var(--glass-cast);
+}
+.button--primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 var(--glass-light),
+    0 3px 5px -3px rgb(36 47 61 / 0.2),
+    0 24px 44px -24px color-mix(in oklch, var(--accent) 42%, transparent);
+}
+.button--primary:active:not(:disabled) {
+  transform: none;
+}
+
+.button--secondary {
+  background: transparent;
+  color: var(--text-1);
+  border-color: var(--border-1);
+}
+.button--secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* The quiet button is not laid on the page, it is written on it. Without that
+   exception a screen of six gestures looks like a row of calculator keys.
+
+   "Written on the page" does not license "indistinguishable from the page".
+   With no ground, no border and `--text-2`, the quiet button was exactly a
+   `.t-label`: same family, same caps, same tracking, same colour — and the
+   only distinguishing sign, colour on hover, does not exist under a finger.
+
+   The rule under the text is the answer: on paper, what is written and
+   actionable is UNDERLINED. It does not manufacture a key, and it shows
+   without hovering. `--border-2` at rest, the accent along with the text on
+   hover. */
+.button--quiet {
+  background: transparent;
+  color: var(--text-2);
+  border-color: transparent;
+  padding: 0 var(--space-2);
+  text-decoration-line: underline;
+  text-decoration-color: var(--border-2);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.5em;
+  transition:
+    color var(--duration-hover) var(--curve),
+    text-decoration-color var(--duration-hover) var(--curve);
+}
+.button--quiet:hover:not(:disabled) {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+/* Disabled it is no longer a command: the rule goes with it, otherwise a dead
+   button keeps announcing that it can be pressed. */
+.button--quiet:disabled {
+  text-decoration-color: transparent;
+}
+
+.button--compact {
+  min-height: 32px;
+  font-size: 0.5625rem;
+  padding: 0 var(--space-3);
+}
+
+/* UNDER A FINGER, NOTHING IS COMPACT.
+   `--touch-target: 44px` is the system rule and `.button--compact` contradicted
+   it: on a phone the daily-front actions dropped to 32 px, and those are
+   exactly the ones aimed at standing in the street.
+
+   `pointer: coarse` asks about the POINTING DEVICE, not the viewport width, so
+   this is not the "a media query measures the viewport" trap. A narrow desktop
+   window keeps the compact button; a finger gets it at 44 px whatever the
+   screen size. */
+@media (pointer: coarse) {
+  .button--compact {
+    min-height: var(--touch-target);
+    padding: 0 var(--space-4);
+  }
+}
+
+.button--full {
+  width: 100%;
+}
+
+/* ==========================================================================
+   LOOT — an amount in euros, staged.
+
+   The accent never leaves money and action: it is the system's only colour,
+   and spending it on a title would make it mute where it counts. The recurring
+   part reads on the same line, smaller: "3 500 €" then "+ 90 €/month".
+
+   OFF-GRID shows NO amount. `PriceEstimate.kind` zeroes the three amounts by
+   construction, and printing "0 €" on the best lead in the file would be a
+   lie. The reason is shown instead — in SERIF ITALIC, because it is a sentence
+   and not a measurement.
+   ========================================================================== */
+
+.loot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   AN AMOUNT IS MONO, EVEN LARGE, EVEN AS A TITLE.
+   `Loot` puts a size class (`.t-hero`, `.t-display`...) on the same element,
+   and those classes are SERIF; a loot in Source Serif reads like a quotation,
+   not a measurement. `.loot__amount` therefore restates the family and size.
+   Both selectors have the same specificity (0,1,0) — DECLARATION ORDER decides,
+   and this block sits below the typography one. Moving it above would break the
+   display without a single error.
+   -------------------------------------------------------------------------- */
+.loot__amount {
+  color: var(--accent-text);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  display: block;
+}
+
+.loot--hero .loot__amount {
+  font-size: clamp(1.75rem, 1.1rem + 2.6vw, 2.25rem);
+  line-height: 1.1;
+}
+.loot--display .loot__amount {
+  font-size: clamp(1.3rem, 1rem + 1.4vw, 1.5rem);
+  line-height: 1.2;
+}
+.loot--title .loot__amount {
+  font-size: 1.0625rem;
+  line-height: 1.3;
+}
+.loot--body .loot__amount {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.loot--neutral .loot__amount {
+  color: var(--text-1);
+}
+
+.loot__recurring {
+  color: var(--accent-text);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-weight: 500;
+}
+
+.loot__recurring-unit {
+  color: var(--text-2);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-weight: 400;
+}
+
+.loot__off-grid {
+  color: var(--text-1);
+  font-family: var(--typeface-serif), Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 0.9375rem;
+}
+
+/* ==========================================================================
+   GAUGE
+
+   `scaleX` only: never `width`, never `left`. Origin is left, the value comes
+   through `--gauge` (0 to 1). The animation starts from zero, which makes it
+   playable without a line of JavaScript; under reduced motion the global rule
+   drops it to 0.01 ms and the bar is simply there.
+   ========================================================================== */
+
+.gauge {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.gauge__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.gauge__name {
+  color: var(--text-2);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gauge__value {
+  color: var(--text-1);
+  flex: 0 0 auto;
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-weight: 700;
+}
+
+/* The track carries a border: on ivory some resistance tints graze 3:1 against
+   the surface, and the outline keeps the gauge perceivable as an object even
+   when the tint blends in. The NUMERIC VALUE is always shown next to it anyway:
+   colour never carries the information on its own. */
+.gauge__track {
+  position: relative;
+  height: var(--gauge-thickness, 6px);
+  border-radius: var(--radius-dot);
+  background: var(--surface-3);
+  border: 1px solid var(--border-1);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.gauge__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--gauge-tint, var(--text-1));
+  transform-origin: left center;
+  transform: scaleX(var(--gauge, 0));
+  animation: gauge-rise var(--duration-medium) var(--curve) both;
+  animation-delay: calc(var(--gauge-delay, 0) * 40ms);
+}
+
+@keyframes gauge-rise {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.gauge--thin {
+  --gauge-thickness: 4px;
+}
+.gauge--thick {
+  --gauge-thickness: 10px;
+}
+
+/* Block variant — a sector's hold, "▓▓▓░░ 22 %". */
+.gauge__segments {
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gauge__segment {
+  flex: 1 1 0;
+  height: var(--gauge-thickness, 6px);
+  border-radius: 2px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-1);
+}
+
+.gauge__segment[data-filled="yes"] {
+  background: var(--gauge-tint, var(--text-1));
+  border-color: var(--gauge-tint, var(--text-1));
+}
+
+/* ==========================================================================
+   DIFFICULTY — resistance, as a bar or an arc.
+
+   Three stacked reading levels, like a credit score: the figure in one second,
+   the qualifier half a second later, the breakdown on demand. And the figure
+   owns its freshness: while fewer than thirty outcomes are recorded, the "not
+   yet calibrated (n = X)" mention NEVER leaves the display. A figure that
+   cannot be explained will not be believed.
+   ========================================================================== */
+
+.difficulty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.difficulty__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.difficulty__value {
+  color: var(--text-1);
+}
+
+.difficulty__qualifier {
+  color: var(--text-2);
+}
+
+.difficulty__caption {
+  /* REQUIRED to read the figure: so `--text-2`, never `--text-3`. */
+  color: var(--text-2);
+}
+
+/* The arc. The stroke fills from 0 to the value and the cursor follows, both
+   driven by the same registered property `--arc`. That is the only way to play
+   it without a line of JavaScript, and therefore without a hydration
+   mismatch. */
+@property --arc {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* The centre figure is HTML, not SVG `<text>`: it keeps the real font, real
+   tabular figures and the browser's real text-size setting. SVG `<text>`
+   ignores the system's typographic zoom. */
+.difficulty__arc-box {
+  position: relative;
+  width: 100%;
+  max-width: 260px;
+  margin-inline: auto;
+}
+
+.difficulty__arc {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.difficulty__arc-text {
+  position: absolute;
+  left: 50%;
+  top: 64%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  width: 62%;
+}
+
+.difficulty__arc-track {
+  fill: none;
+  stroke: var(--surface-3);
+  /* 7 px, not 12. The resistance ramp is the ONLY place in the system where a
+     coloured scale survives; at twelve pixels of stroke on paper it became the
+     loudest thing on the sheet and crushed the figure it is meant to serve. */
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.difficulty__arc-fill {
+  --arc: var(--arc-target, 0);
+  fill: none;
+  stroke: var(--resistance-tint, var(--text-1));
+  /* Same 7 px as the track, and for the same reason. */
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: var(--arc-length) var(--arc-length);
+  stroke-dashoffset: calc(var(--arc-length) * (1 - var(--arc)));
+  animation: arc-rise var(--duration-long) var(--curve) both;
+}
+
+.difficulty__arc-cursor {
+  --arc: var(--arc-target, 0);
+  fill: var(--text-1);
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+  transform: rotate(calc(-90deg + var(--arc) * 180deg));
+  animation: arc-rise var(--duration-long) var(--curve) both;
+}
+
+@keyframes arc-rise {
+  from {
+    --arc: 0;
+  }
+}
+
+/* ==========================================================================
+   RARITY — the rank chip.
+
+   A rank chip is never shown alone: it always carries its justification on a
+   second line. "Bastion" alone is decorative; "Bastion · expectancy 1 730 €" is
+   information.
+
+   Three encoding channels remain, not four: diameter, ring and name — that is,
+   in order, what survives colour-blindness, a bad screen, and a screen reader.
+   Colour was dropped system-wide in favour of a single accent, so the five
+   `--rank-N` are now equal.
+
+   The NAME stays `--text-1`: on the accent veil it measures over 12:1, where
+   the rank colour fell between 3.6 and 4.2:1.
+   ========================================================================== */
+
+.rarity {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  border-radius: var(--radius-2);
+  background: var(--rank-veil);
+  border: 1px solid var(--border-1);
+  /* The left edge is the chip's only coloured stroke: it marks the rank
+     without retinting the whole box. */
+  border-left: 2px solid var(--rank-color);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rarity--card {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius-3);
+}
+
+.rarity__texts {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.rarity__name {
+  color: var(--text-1);
+}
+
+.rarity__reason {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   THE BAND SCALE — the bubble under the "i".
+
+   Three inputs, zero script. `:hover` alone excludes the finger, an `onClick`
+   alone excludes the keyboard. The trigger is a `<button>`: `:hover` serves the
+   mouse, `:focus-within` serves the keyboard AND the finger, since touching a
+   button focuses it. The hover rule is locked inside `@media (hover: hover)`,
+   without which the bubble STICKS on a touchscreen: the browser simulates a
+   persistent `:hover` after the tap.
+   ========================================================================== */
+
+.scale {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+  margin-inline-start: var(--space-1);
+}
+
+.scale__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 16px;
+  block-size: 16px;
+  padding: 0;
+  border: 1px solid var(--border-2);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1;
+  cursor: help;
+  /* The chip is `.t-label`: caps and 0.2 em tracking. Without this reset the
+     "i" comes out as "I", shifted right inside its 16 px circle. */
+  text-transform: none;
+  letter-spacing: normal;
+  font-style: italic;
+  transition:
+    color var(--duration-short) var(--curve),
+    border-color var(--duration-short) var(--curve);
+}
+
+.scale__trigger:hover,
+.scale__trigger:focus-visible {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.scale__trigger:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* --- The bubble ----------------------------------------------------------
+   It starts slightly sunk and rises: the motion comes from the "i", which says
+   where it came from. `visibility` goes with the opacity — without it, a bubble
+   at `opacity: 0` stays clickable and swallows the sheet's clicks. */
+.scale__bubble {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-start: -8px;
+  z-index: 20;
+  inline-size: min(340px, calc(100vw - var(--space-6)));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-3);
+  text-align: start;
+  /* The bubble hangs off a heavily tracked caps chip: without this reset its
+     whole content would inherit that tracking. */
+  letter-spacing: normal;
+  text-transform: none;
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -4px;
+  scale: 0.98;
+  transform-origin: top left;
+  transition:
+    opacity var(--duration-short) var(--curve),
+    translate var(--duration-short) var(--curve),
+    scale var(--duration-short) var(--curve),
+    visibility 0s linear var(--duration-short);
+}
+
+.scale:focus-within .scale__bubble {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  scale: 1;
+  transition-delay: 0s;
+}
+
+@media (hover: hover) {
+  .scale:hover .scale__bubble {
+    opacity: 1;
+    visibility: visible;
+    translate: 0 0;
+    scale: 1;
+    transition-delay: 0s;
+  }
+}
+
+.scale__title {
+  color: var(--text-2);
+}
+
+.scale__intro,
+.scale__where {
+  color: var(--text-2);
+}
+
+.scale__intro strong,
+.scale__where strong {
+  color: var(--text-1);
+}
+
+/* --- The gauge, five EQUAL bands -----------------------------------------
+   Not a euro axis: the thresholds run 0 · 308 · 770 · 1 540 · 3 080, and on a
+   linear axis four bands out of five would collapse into the first sixth. Five
+   bands of equal width, the current one filled. */
+.scale__gauge {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  block-size: 6px;
+}
+
+.scale__band {
+  border-radius: 999px;
+  background: var(--surface-3);
+  transition: background var(--duration-short) var(--curve);
+}
+
+.scale__band[data-current="yes"] {
+  background: var(--rank-color);
+}
+
+.scale__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.scale__step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.scale__step-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.scale__step-name {
+  color: var(--text-3);
+}
+
+.scale__step[data-current="yes"] .scale__step-name {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.scale__step-meaning {
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}
+
+.scale__step[data-current="yes"] .scale__step-meaning {
+  color: var(--text-2);
+}
+
+.scale__here {
+  color: var(--accent-text);
+}
+
+/* The motion goes, the bubble stays. A hint that refused to open under reduced
+   motion would be information removed, not an animation removed. */
+@media (prefers-reduced-motion: reduce) {
+  .scale__bubble {
+    translate: none;
+    scale: none;
+    transition:
+      opacity 1ms linear,
+      visibility 0s linear 1ms;
+  }
+}
+
+/* The map dot: the diameter IS the amount. It doubles as the legend everywhere
+   else, at the same diameter, so the map stays readable. */
+.dot {
+  flex: 0 0 auto;
+  display: inline-block;
+  width: var(--dot-size, 8px);
+  height: var(--dot-size, 8px);
+  border-radius: var(--radius-dot);
+  background: var(--rank-color);
+  box-shadow: var(--dot-ring, none);
+}
+
+.dot--halo {
+  box-shadow:
+    var(--dot-ring, 0 0 0 0 transparent),
+    0 0 12px 2px var(--rank-color);
+}
+
+/* A fixed 24 px slot: aligns the five bands in a column despite their
+   different diameters. Without it the legend dances. */
+.dot-box {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+/* ==========================================================================
+   STREAK
+
+   No exclamation marks, no anxious countdown. The only thing the interface is
+   allowed to signal is that a day is under way.
+   ========================================================================== */
+
+.streak {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.streak__days {
+  color: var(--text-1);
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.streak__unit {
+  color: var(--text-2);
+  font-size: 0.5em;
+  font-weight: 600;
+}
+
+.streak--alive .streak__days {
+  animation: streak-pulse var(--duration-short) var(--curve);
+}
+
+@keyframes streak-pulse {
+  0% {
+    transform: scale(1);
+  }
+  55% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.streak__week {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.streak__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 14px;
+}
+
+.streak__cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--border-2);
+  background: transparent;
+}
+
+.streak__cell[data-held="yes"] {
+  background: var(--text-1);
+  border-color: var(--text-1);
+}
+
+.streak__initial {
+  color: var(--text-2);
+  font-size: 0.5625rem;
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  letter-spacing: 0.04em;
+}
+
+/* ==========================================================================
+   LEVEL — the tier and the advance.
+
+   Advance is EARNED, never claimed: there is no button to cash it in. Nothing
+   here is clickable, and that is deliberate.
+   ========================================================================== */
+
+.level {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.level__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.level__tier {
+  color: var(--text-1);
+}
+
+.level__step {
+  color: var(--text-2);
+}
+
+.level__rest {
+  color: var(--text-2);
+}
+
+/* ==========================================================================
+   FACT — one of the five named statistics.
+
+   A statistic WITH NO DATA is not worth zero: it shows "—", says "not
+   recorded", and leaves the calculation.
+   ========================================================================== */
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-1);
+  min-width: 0;
+}
+
+.fact:last-child {
+  border-bottom: 0;
+}
+
+.fact__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.fact__name {
+  color: var(--text-1);
+  flex: 0 0 auto;
+  min-width: 86px;
+}
+
+.fact__gauge {
+  flex: 1 1 auto;
+  min-width: 48px;
+}
+
+.fact__value {
+  flex: 0 0 auto;
+  min-width: 40px;
+  text-align: right;
+  color: var(--text-1);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.fact--empty .fact__value {
+  color: var(--text-2);
+}
+
+.fact__verbatim {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.fact__source {
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+/* In a source row the badge opens the line, so it drops the inline margin that
+   separates it from preceding text. */
+.fact__source .sources {
+  margin-inline-start: 0;
+}
+
+.fact__stale {
+  color: var(--text-2);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   SOURCE — where the data next to it came from.
+
+   Every game element is backed by a true fact: this badge is what makes that
+   fact TRACEABLE. It is told apart by its SHAPE, never by its colour — the
+   palette has one blue, and a badge that was the only patch of colour on
+   screen would pull the eye to the provenance instead of the figure.
+
+   It sits IN THE FLOW, not in the gutter. An absolutely positioned badge in the
+   margin would look tidier and be wrong at the first line wrap: an address on
+   two lines would leave its mark on the top line, next to the wrong words. In
+   `inline-flex` it follows the last word wherever it falls.
+   ========================================================================== */
+
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  /* Pale at rest: it is a footnote, not data. It wakes on hover of the block
+     that carries it. */
+  color: var(--text-4);
+  vertical-align: baseline;
+  margin-inline-start: 0.4em;
+  transition: color 120ms ease;
+  /* The size is FIXED, not relative to neighbouring text. The same badge sits
+     on the business name (`t-title-1`, 26 px) and on a source line
+     (`t-body-s`, 13 px). Sized in `em` it swung from 12 px to 24 px and read
+     as a rank pictogram next to the title. In `rem`, the fifteen badges on a
+     sheet are all the same size, which is the only way to read them as ONE
+     convention rather than as ornaments. */
+  font-size: 0.8125rem;
+  line-height: 1;
+}
+
+.source svg {
+  inline-size: 1em;
+  block-size: 1em;
+  /* A capital sits on the baseline; a square crosses it. */
+  translate: 0 0.1em;
+  flex: 0 0 auto;
+}
+
+/* The whole block reacts, not the badge alone: aiming a mouse at a 12 px
+   target to read a `title` is not an interaction, it is a contest. */
+p:hover > .source,
+h2:hover > .source,
+li:hover .source,
+.fact:hover .source,
+.source:hover {
+  color: var(--text-2);
+}
+
+.sources {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: 0.4em;
+}
+
+/* Two badges side by side need no inline margin between them: they point at
+   the SAME datum, not two. */
+.sources > .source {
+  margin-inline-start: 0;
+}
+
+/* --- The legend ---------------------------------------------------------- */
+
+.source-legend {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.source-legend__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Here, and only here, the badge is the subject of the row: it takes the
+   current text colour and a fixed gutter so the five pictograms line up
+   vertically whatever their name. */
+.source-legend__row > .source {
+  margin-inline-start: 0;
+  color: var(--text-1);
+  flex: 0 0 auto;
+  inline-size: 1.1rem;
+  justify-content: center;
+  translate: 0 0.15em;
+}
+
+.source-legend__row > .source svg {
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+  translate: 0;
+}
+
+.source-legend__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.source-legend__name {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.source-legend__what {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+/* Below 320 px of CONTAINER — not viewport — the name moves above the bar.
+   Without this switch, `min-width: 86px` + `min-width: 48px` + 40 px do not fit
+   and the bar is crushed. */
+@container panel (max-width: 320px) {
+  .fact__head {
+    flex-wrap: wrap;
+  }
+  .fact__gauge {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+/* ==========================================================================
+   HOLD — the sector's permanent readout.
+
+   Businesses taken over businesses surveyed. The map IS the progress bar; this
+   counter only names it.
+   ========================================================================== */
+
+/* It sits ON the map: one of the few places where something really passes
+   behind, so one of the few places glass is justified. The edges come from
+   `.glass`, added alongside in the component. */
+.hold {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-3);
+  min-width: 0;
+}
+
+.hold--floating {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 2;
+}
+
+.hold__rate {
+  color: var(--text-1);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-weight: 500;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+}
+
+.hold__detail {
+  color: var(--text-2);
+}
+
+/* ==========================================================================
+   STAMP — the celebration of a take, and its counterpart, the loss.
+
+   NO CONFETTI, EVER. Confetti celebrates the event; the stamp celebrates the
+   FACT. Three facts, zero adjectives, and the same variant for a loss — a game
+   that only knows how to celebrate wins becomes a game you stop opening on bad
+   days. NO SOUND either: this is often used while on a call.
+   ========================================================================== */
+
+.stamp {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: var(--modal-veil);
+  animation: stamp-backdrop var(--duration-hover) var(--curve) both;
+}
+
+@keyframes stamp-backdrop {
+  from {
+    opacity: 0;
+  }
+}
+
+.stamp__card {
+  position: relative;
+  width: min(420px, 100%);
+  container-type: inline-size;
+  container-name: panel;
+  padding: var(--space-5);
+  border-radius: var(--radius-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  box-shadow: var(--shadow-3);
+  text-align: center;
+  animation: stamp-settle var(--duration-short) var(--curve) both;
+}
+
+.stamp--capture .stamp__card {
+  border-color: var(--accent);
+}
+
+/* The stamp settles, it no longer slams down. All that is left is the 8 px
+   rise and the opacity: the minimal gesture that says "this just happened"
+   without staging it. */
+@keyframes stamp-settle {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+.stamp__kind {
+  color: var(--text-2);
+}
+
+.stamp--capture .stamp__kind {
+  color: var(--accent-text);
+}
+
+.stamp__business {
+  color: var(--text-1);
+  margin: var(--space-2) 0;
+  overflow-wrap: anywhere;
+}
+
+.stamp__sector {
+  color: var(--text-2);
+  margin-top: var(--space-3);
+}
+
+.stamp__close {
+  margin-top: var(--space-4);
+}
+
+/* Under reduced motion: no deformation at all. The stamp is simply there and
+   waits for the click — a different behaviour, not merely a faster one, hence
+   these explicit overrides on top of the global rule. */
+@media (prefers-reduced-motion: reduce) {
+  .stamp__card,
+  .stamp {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   THE THEME TOGGLE.
+
+   A bordered pill, a pictogram and a label — and both STATE THE DESTINATION,
+   never the current state. The complaint usually levelled at a toggle, that it
+   makes you guess what it will do, is answered by naming the action, not by
+   doubling the button into a segmented control.
+   ========================================================================== */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-dot);
+  border: 1px solid var(--border-1);
+  background: transparent;
+  color: var(--text-3);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color var(--duration-hover) var(--curve),
+    border-color var(--duration-hover) var(--curve),
+    background-color var(--duration-hover) var(--curve);
+}
+
+.toggle:hover {
+  color: var(--text-1);
+  border-color: var(--border-2);
+}
+
+/* The pictogram carries the pill when the rail hides the label: at 9 px inside
+   a 44 px circle the typographic glyph showed as an empty ring. Fifteen pixels,
+   and it fills its slot. */
+.toggle__icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+/* The colour cross-fade when the theme changes. */
+.theme-switching,
+.theme-switching * {
+  transition:
+    background-color 180ms var(--curve),
+    border-color 180ms var(--curve),
+    color 180ms var(--curve) !important;
+}
+
+/* ==========================================================================
+   THE TOOLTIP.
+
+   It reads `aria-label`, and that is the whole point. `content: attr(aria-label)`
+   makes the ACCESSIBLE name the single source of the visible text:
+     — a button with no visible label cannot have a bubble saying something
+       other than what the screen reader announces, so "Label in Name" becomes
+       impossible to violate;
+     — there is nothing to translate twice, so nothing to forget on one side;
+     — no `data-*` carries prose. In this repo a `data-*` is an ASCII KEY that
+       is never translated.
+
+   No `role="tooltip"` and no `aria-describedby`: the text IS already the
+   accessible name, and announcing it twice would read it twice.
+
+   No native `title` on the same elements either: the browser's own bubble
+   arrives a second later and lands UNDER this one, same word twice.
+
+   The 320 ms delay is what separates a hint from a nuisance: without it, a
+   pointer crossing the command stack lights three bubbles in a row. It applies
+   to the appearance only — dismissal is immediate.
+   ========================================================================== */
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(aria-label);
+  position: absolute;
+  z-index: 8;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-2);
+  /* Ink becomes the ground and paper becomes the ink: the contrast is by
+     construction that of body text, in both themes, without one extra token. */
+  background: var(--text-1);
+  color: var(--bg);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: var(--shadow-2);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-hover) var(--curve);
+}
+
+.tooltip:hover::after,
+.tooltip:focus-visible::after {
+  opacity: 1;
+  transition-delay: 320ms;
+}
+
+/* Left: the default for the command stack, pinned to the map's right edge. A
+   bubble opening rightwards would leave the screen. */
+.tooltip--left::after {
+  inset-inline-end: calc(100% + var(--space-2));
+  inset-block-start: 50%;
+  translate: 0 -50%;
+}
+
+/* Below: for what lives at the top centre.
+
+   `width: max-content` is not decorative. An absolutely positioned box at
+   `inset-inline-start: 50%` computes its preferred width from what REMAINS up
+   to its container's right edge — half the button, 78 px on the search pill.
+   The sentence fell onto six lines of three words, and the 260 px `max-width`
+   changed nothing since it only sets a ceiling. `max-content` asks for the
+   text's width, the ceiling bounds it, and `translate` recentres it. */
+.tooltip--below::after {
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  width: max-content;
+  max-width: min(260px, 80vw);
+  white-space: normal;
+  text-align: center;
+}
+
+/* ==========================================================================
+   THE OVERFLOW MENU.
+
+   The trigger is a bordered pill of the same family as `.button--secondary`: it
+   lives in a row of buttons and has no reason to be the only object there in a
+   different language. It takes the accent while the panel is open — the only
+   clue the panel came from it, once the panel has covered the map.
+
+   The panel is OPAQUE, and that is a deliberate exception. The glass rule
+   would allow it, since it sits over the map — but it also sits, within two
+   pixels, over the settings panel that opens just below, and two stacked glass
+   layers only render grey. It follows `.map__settings`, its immediate
+   neighbour, which is a plate.
+
+   Items are 44 px like the buttons: the tool is used standing in the street,
+   and a menu whose rows touch is a menu you mis-tap. They are in SENTENCE TEXT,
+   not mono caps: the toolbar names GESTURES ("DRAW A SECTOR"), the menu names
+   DESTINATIONS and settings, and the two registers must not blur at arm's
+   length.
+   ========================================================================== */
+
+.menu {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-dot);
+  border: var(--hairline) solid var(--border-1);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    color var(--duration-hover) var(--curve),
+    border-color var(--duration-hover) var(--curve);
+}
+
+.menu__trigger:hover,
+.menu__trigger[aria-expanded="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.menu__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.menu__panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-2));
+  /* End-aligned by default: an unknown modifier would open the panel off-screen. */
+  inset-inline-end: 0;
+  z-index: 6;
+  /* 252 px, not 224: "Switch to the light theme" is the menu's longest label
+     and wrapped onto two lines, which made the row height jump from one theme
+     to the other. */
+  min-width: 252px;
+  max-width: min(320px, calc(100vw - var(--space-5)));
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-1);
+  border-radius: var(--radius-3);
+  border: 1px solid var(--border-1);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+  animation: menu-drop var(--duration-medium) var(--curve);
+  transform-origin: top var(--menu-origin, right);
+}
+
+/* The panel aligns to an EDGE of the trigger, never to its centre: the toolbar
+   is anchored to the left of the map and the trigger ends it, so a
+   centre-anchored panel would overflow to the right. */
+.menu__panel--end {
+  inset-inline-end: 0;
+}
+
+.menu__panel--start {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  --menu-origin: left;
+}
+
+@keyframes menu-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--text-1);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-hover) var(--curve),
+    color var(--duration-hover) var(--curve);
+}
+
+.menu__item:hover {
+  background: var(--surface-2);
+  color: var(--accent-text);
+}
+
+/* An entry disabled while its action runs (sign-out) keeps its row. */
+.menu__item:disabled {
+  color: var(--text-3);
+  cursor: default;
+}
+
+.menu__item:disabled:hover {
+  background: transparent;
+  color: var(--text-3);
+}
+
+/* Keyboard focus has to show WITHOUT hover: the down arrow is the normal way
+   through a menu, and the global 2 px outline overflows the panel's 1 px
+   padding. A background is enough here, and reads better. */
+.menu__item:focus-visible {
+  outline: none;
+  background: var(--surface-2);
+  color: var(--accent-text);
+  box-shadow: inset 0 0 0 2px var(--focus);
+}
+
+.menu__heading {
+  margin: 0;
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu__separator {
+  height: 1px;
+  margin: var(--space-1) var(--space-2);
+  background: var(--border-1);
+}
+
+/* ==========================================================================
+   TILE ATTRIBUTION
+
+   MANDATORY (ODbL for OpenStreetMap, the OpenFreeMap README for OpenMapTiles).
+   NEVER pass `attributionControl: false`: it is the only thing keeping this
+   licence-compliant. Restyle it, never replace it.
+   ========================================================================== */
+
+.maplibregl-ctrl-attrib {
+  background: var(--surface-1) !important;
+  color: var(--text-3) !important;
+  font-size: 10px;
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--text-2) !important;
+}

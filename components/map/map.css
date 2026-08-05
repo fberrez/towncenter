@@ -1,0 +1,1914 @@
+/* The territory screen. Defines no design token; it only uses those of
+   `app/globals.css`. `--sheet-width` is a shared measurement, not a token.
+
+   Every fold goes through `@container screen (...)`: a media query measures the
+   WINDOW, not the container, and would apply the wide layout to a narrow panel.
+   The one exception is `@media (pointer: coarse)`, which asks about the DEVICE.
+
+   Tile attribution is a licence obligation (ODbL for OpenStreetMap): it carries
+   the highest z-index on the screen, and the sheet reserves a bottom margin so
+   nothing useful falls under it. */
+
+/* The shell */
+
+.territory {
+  container-type: inline-size;
+  container-name: screen;
+  --sheet-width: 480px;
+  height: 100dvh;
+  display: grid;
+  /* One row, because there is one child. An `auto` row sizes on its CONTENT,
+     and the map inside is `position: absolute` and counts for nothing: the
+     body then collapses to the height of the rail text. */
+  grid-template-rows: minmax(0, 1fr);
+  /* `clip`, not `hidden`: `overflow: hidden` still creates a SCROLL CONTAINER,
+     so `scrollIntoView` and `focus()` can slide the whole app up with no
+     scrollbar to bring it back. `hidden` stays first for older engines. */
+  overflow: hidden;
+  overflow: clip;
+  background: var(--bg);
+  color: var(--text-1);
+}
+
+.territory__body {
+  position: relative;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  min-height: 0;
+  min-width: 0;
+}
+
+/* The left rail */
+
+.territory__rail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--border-1);
+  background: var(--surface-1);
+  transition: transform var(--duration-short) var(--curve);
+}
+
+.territory__tabs {
+  display: flex;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--border-1);
+}
+
+.territory__tab {
+  flex: 1 1 0;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-2);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.territory__tab[aria-selected="true"] {
+  color: var(--text-1);
+  border-bottom-color: var(--accent);
+}
+
+.territory__rail-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-3);
+}
+
+/* Without `position: relative` here, `.map` (`position: absolute; inset: 0`)
+   anchors to `.territory__body` and spreads under the left rail. Nothing
+   reports it: the rail stays in the DOM, its clicks are simply intercepted. */
+.territory__stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* The sectors */
+
+.sectors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.sectors__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.sectors__discipline {
+  container-type: inline-size;
+  container-name: panel;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.sectors__cheat,
+.sectors__empty {
+  margin: 0;
+}
+
+.sectors__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sector {
+  container-type: inline-size;
+  container-name: panel;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  background: var(--surface-2);
+  min-width: 0;
+}
+
+.sector[data-here="yes"] {
+  border-color: var(--accent);
+  background: var(--accent-veil);
+}
+
+.sector__name {
+  /* Stretched link: the `<button>` may only wrap phrasing content, so its
+     `::after` covers the whole card instead. */
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: start;
+  color: var(--text-1);
+  cursor: pointer;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sector__name::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-2);
+}
+
+.sector__name:focus-visible {
+  outline: none;
+}
+
+.sector__name:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sector:hover {
+  border-color: var(--border-2);
+}
+
+.sector__failure {
+  color: var(--failure-text);
+}
+
+.sector__running {
+  color: var(--text-2);
+}
+
+.sector__figures,
+.sector__area {
+  color: var(--text-2);
+}
+
+.sector__captured {
+  color: var(--accent-text);
+}
+
+/* --- Renaming --- */
+
+/* `.sector__name::after` is absolute and covers the whole card, so anything
+   added afterwards falls underneath: visible and perfectly inert. These two
+   lines are what make the rename button and its field usable. */
+.sector__actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+}
+
+.sector__rename {
+  align-items: stretch;
+}
+
+.sector__field {
+  flex: 1 1 12ch;
+  min-width: 0;
+  display: flex;
+}
+
+.sector__field .map__input {
+  width: 100%;
+}
+
+.sector__hint {
+  flex-basis: 100%;
+}
+
+.sector__message {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+.sector__message[data-status="error"] {
+  color: var(--failure-text);
+}
+
+.sector__message[data-status="success"] {
+  color: var(--success-text);
+}
+
+/* --- The sector whose survey is running --- */
+
+/* The ghost must not look like a real sector: dashed border, no stretched
+   link, no hold figure. Nothing it shows has been earned yet. */
+.sector--ghost {
+  border-style: dashed;
+  border-color: var(--accent);
+  background: var(--accent-veil);
+}
+
+.sector__ghost-name {
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+
+/* Skeleton bar standing in for a figure we do not have yet. With reduced
+   motion it stays a plain bar, which says the same thing. */
+.sector__bone {
+  display: block;
+  height: 8px;
+  border-radius: var(--radius-1);
+  background: linear-gradient(
+    90deg,
+    var(--surface-3) 0%,
+    var(--border-2) 40%,
+    var(--surface-3) 80%
+  );
+  background-size: 250% 100%;
+  animation: sector-bone 1.8s ease-in-out infinite;
+}
+
+.sector__bone--short {
+  width: 55%;
+}
+
+@keyframes sector-bone {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+/* The business list */
+
+.target-list__ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.target-list__off-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  background: var(--surface-2);
+}
+
+.target-list__rest,
+.target-list__cut {
+  margin-top: var(--space-3);
+}
+
+.target-list__cut {
+  color: var(--failure-text);
+}
+
+.target-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-left: 3px solid var(--rank-color, var(--border-1));
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--text-1);
+  text-align: start;
+  cursor: pointer;
+  min-width: 0;
+  transition:
+    background-color var(--duration-hover) var(--curve),
+    border-color var(--duration-hover) var(--curve);
+}
+
+/* Top row: the dot, the name taking all remaining width, the amount that
+   never shrinks. */
+.target-row__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+}
+
+/* Bottom row: context. Nothing here is vital, so everything can shrink. */
+.target-row__bottom {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+}
+
+.target-row:hover {
+  background: var(--surface-2);
+}
+
+.target-row[data-selected="yes"] {
+  background: var(--surface-3);
+  border-color: var(--border-2);
+  border-left-color: var(--rank-color, var(--accent));
+}
+
+.target-row[data-state="taken"] {
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+}
+
+.target-row[data-state="withdrawn"],
+.target-row[data-state="dismissed"] {
+  opacity: 0.6;
+}
+
+/* No halo in a list. The halo earns its place ON THE MAP, among hundreds of
+   dots; in a list already sorted by expectancy the top row is the top row, and
+   nine haloed rows read as nine stacked blurs. Rank stays double-encoded by
+   colour, diameter, ring and its name written beside it. */
+.target-row .dot--halo {
+  box-shadow: var(--dot-ring, none);
+}
+
+.target-row__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* SIRENE returns business names in CAPITALS; small caps read without
+     shouting and take less room. */
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.02em;
+}
+
+.target-row__meta {
+  flex: 1 1 auto;
+  color: var(--text-3);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.target-row__loot,
+.target-row__off-grid {
+  flex: 0 0 auto;
+  color: var(--accent-text);
+}
+
+.target-row__off-grid {
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Resistance does not shout in a list: a high resistance is an ordinary fact,
+   not an incident. The resistance gradient only appears INSIDE a gauge, so the
+   figure stays grey with a small tinted dot for the double encoding. */
+.target-row__resistance {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.target-row__resistance::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-dot);
+  background: var(--resistance-tint, var(--text-3));
+}
+
+/* The map */
+
+.map {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.map__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.map__canvas[data-collapsed="yes"] {
+  /* The container stays mounted — maplibre owns it — but takes no space, or
+     it would hide the fallback list. */
+  visibility: hidden;
+}
+
+.map__fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* With no map there is no overlay layer: everything goes back into the flow,
+   in reading order, because the absolutely positioned tools and list would
+   otherwise stack on each other. `.map__canvas` stays absolute and merely
+   `visibility: hidden` — maplibre requires its node to survive, or no further
+   attempt is possible. */
+.map[data-collapsed="yes"] {
+  display: flex;
+  flex-direction: column;
+}
+
+.map[data-collapsed="yes"] .map__tools {
+  position: static;
+  order: 1;
+  max-width: none;
+  flex: 0 0 auto;
+  padding: var(--space-3) var(--space-4) 0;
+}
+
+/* Without a map the control stack lies down: a column of three pills would
+   leave a 148 px empty band beside the heading. */
+.map[data-collapsed="yes"] .map__controls {
+  flex-direction: row;
+}
+
+.map[data-collapsed="yes"] .map__fallback {
+  position: static;
+  order: 2;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-block-start: var(--space-3);
+}
+
+/* Back in the flow, the list rendered OVER the two bottom overlays and the
+   daily front vanished. They float above the list exactly as they float above
+   the map, and the list scrolls underneath. */
+.map[data-collapsed="yes"] .map__front,
+.map[data-collapsed="yes"] .map__hold {
+  z-index: 4;
+}
+
+/* --- Overlays --- */
+
+/* 5 and not 3: a flex item carrying a `z-index` creates a stacking context
+   even at `position: static`. On a phone `.map` is a flex column and these
+   overlays are its items, so the menu panel (z-index 6) stayed trapped inside
+   the tools at 3 and fell under the daily front. The toolbar is the COMMAND
+   layer; it stays below the rail drawer (7) and the attribution (20). */
+.map__tools {
+  position: absolute;
+  inset-block-start: var(--space-3);
+  inset-inline-end: var(--space-3);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  max-width: min(420px, calc(100% - var(--space-6)));
+  /* Steps aside when the record drawer opens, see the wide fold. */
+  transition: translate var(--duration-medium) var(--curve);
+}
+
+/* The stack: menu, draw, rail. A column pinned to the right edge. */
+.map__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* On tiles a transparent button is not a button: streets and place names ran
+   straight through "Draw a sector", hence the glass treatment. The three pills
+   must be EXACTLY the same size, hence the metrics repeated from
+   `.menu__trigger` in `globals.css`. */
+.map__control,
+.map__controls .menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  padding: 0;
+  border-radius: var(--radius-dot);
+  border: var(--hairline) solid var(--glass-shadow);
+  border-top-color: var(--glass-light);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  backdrop-filter: blur(12px) saturate(1.5);
+  box-shadow: inset 0 1px 0 var(--glass-light), var(--glass-cast);
+  color: var(--text-1);
+  cursor: pointer;
+  transition:
+    color var(--duration-hover) var(--curve),
+    border-color var(--duration-hover) var(--curve);
+}
+
+.map__control:hover,
+.map__controls .menu__trigger:hover,
+.map__controls .menu__trigger[aria-expanded="true"] {
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 42%, transparent);
+}
+
+/* Only the draw control carries a persistent state; the other two open
+   something and close it again. */
+.map__control[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 55%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--glass-light),
+    0 3px 5px -3px rgb(36 47 61 / 0.2),
+    0 20px 38px -22px color-mix(in oklch, var(--accent) 42%, transparent);
+}
+
+.map__control-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+/* --- Search within the current view --- */
+
+/* Top centre, centred on the MAP and not on the window: `.map` starts after
+   the 300 px rail, so `50%` lands mid-canvas. On either side it would compete
+   with the control stack or with the sector ghost. */
+.map__search {
+  position: absolute;
+  inset-block-start: var(--space-3);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  z-index: 5;
+  max-width: calc(100% - var(--space-6));
+  animation: search-drop var(--duration-medium) var(--curve);
+  /* Re-centres on the drawer; `search-drop` animates `transform` so both hold. */
+  transition: translate var(--duration-medium) var(--curve);
+}
+
+@keyframes search-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.map__hint,
+.map__refusal {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-2);
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  color: var(--text-2);
+}
+
+.map__refusal {
+  border-color: var(--failure);
+  color: var(--failure-text);
+}
+
+.map__settings {
+  max-height: min(52dvh, 460px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-2);
+}
+
+.map__naf {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.map__naf-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.map__naf-code {
+  color: var(--text-2);
+  flex: 0 0 auto;
+}
+
+.map__field,
+.sheet__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.map__input,
+.sheet__input {
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  background: var(--surface-2);
+  color: var(--text-1);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.9375rem;
+}
+
+textarea.sheet__input {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.map__input:focus-visible,
+.sheet__input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* The badge follows the pointer while drawing. Moved by `transform` alone:
+   `top`/`left` would trigger a layout on every frame. */
+.map__badge {
+  display: none;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 5;
+  pointer-events: none;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-1);
+  background: var(--surface-1);
+  border: 1px solid var(--accent);
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.map__badge[data-active="yes"] {
+  display: block;
+}
+
+.map__badge[data-refused="yes"] {
+  border-color: var(--failure);
+  color: var(--failure-text);
+}
+
+.map__silent {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  z-index: 4;
+  width: min(420px, calc(100% - var(--space-6)));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-3);
+}
+
+.map__silent p {
+  margin: 0;
+  color: var(--text-2);
+}
+
+/* Commands on the right, work state on the left: 340 px against 44 in the
+   same corner would overlap on every harvest — exactly when you need to read
+   the progress AND be able to stop it. */
+.map__work {
+  position: absolute;
+  inset-block-start: var(--space-3);
+  inset-inline-start: var(--space-3);
+  z-index: 3;
+  width: min(340px, calc(100% - var(--space-6)));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-2);
+}
+
+.map__work + .map__work {
+  inset-block-start: calc(var(--space-3) + 220px);
+}
+
+.map__work [data-status="error"] {
+  color: var(--failure-text);
+}
+
+.map__work [data-status="success"] {
+  color: var(--success-text);
+}
+
+.map__work-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.map__front {
+  position: absolute;
+  inset-block-end: var(--space-6);
+  inset-inline-start: var(--space-3);
+  z-index: 3;
+  width: min(440px, calc(100% - var(--space-6)));
+}
+
+.map__hold {
+  position: absolute;
+  inset-block-end: var(--space-6);
+  inset-inline-end: var(--space-3);
+  z-index: 3;
+}
+
+/* Attribution goes above everything, including the sheet. Licence obligation,
+   not styling. */
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl-bottom-left {
+  z-index: 20;
+}
+
+/* The floating preview, anchored on the dot: `left` and `top` come from
+   `map.project()` and point at the CENTRE of the business, and the translation
+   lifts the card by its full height plus the tip. */
+
+.floating {
+  position: absolute;
+  z-index: 6;
+  width: 264px;
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  border-radius: var(--radius-4);
+  /* 14 px: 8 px of tip and 6 px of clearance, so the dot's ring stays
+     visible under the card. */
+  transform: translate(-50%, calc(-100% - 14px));
+  animation: floating-settle var(--duration-short) var(--curve) both;
+}
+
+@keyframes floating-settle {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 6px));
+  }
+}
+
+/* The tip: a square rotated 45deg rather than a triangular `border`, the only
+   way to give it the same lit edges as the plate. */
+.floating::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--glass-bg);
+  border-right: 1px solid var(--glass-shadow);
+  border-bottom: 1px solid var(--glass-shadow);
+  -webkit-backdrop-filter: blur(15px) saturate(1.6);
+  backdrop-filter: blur(15px) saturate(1.6);
+}
+
+.floating__close {
+  position: absolute;
+  inset-block-start: var(--space-1);
+  inset-inline-end: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-dot);
+  background: transparent;
+  color: var(--text-3);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--duration-hover) var(--curve);
+}
+
+.floating__close:hover {
+  color: var(--text-1);
+}
+
+.floating__name {
+  margin: 0;
+  /* 26 px reserved for the close cross, or a long name runs under it. */
+  padding-inline-end: 26px;
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+
+.floating__place {
+  margin: 2px 0 var(--space-3);
+  overflow-wrap: anywhere;
+}
+
+.floating__figures {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--border-1);
+  min-width: 0;
+}
+
+.floating__resistance {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 0 0 auto;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.floating__rate {
+  color: var(--text-1);
+}
+
+.floating__action {
+  width: 100%;
+  margin-block-start: var(--space-2);
+}
+
+/* On touch the card stops following the dot and sits at the bottom, full
+   width: 264 px anchored on a point in a 390 px screen leaves the frame half
+   the time. `pointer: coarse` asks about the FINGER, not the window. */
+@media (pointer: coarse) {
+  .floating {
+    left: var(--space-3) !important;
+    right: var(--space-3);
+    top: auto !important;
+    bottom: var(--space-6);
+    width: auto;
+    transform: none;
+    animation: none;
+  }
+
+  .floating::after {
+    display: none;
+  }
+}
+
+/* The daily front */
+
+.front {
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+}
+
+.front__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--text-1);
+  cursor: pointer;
+  text-align: start;
+}
+
+.front__chevron {
+  margin-inline-start: auto;
+  color: var(--text-2);
+}
+
+.front__verbs {
+  min-width: 0;
+}
+
+/* The only alert colour on the screen, reserved for overdue follow-ups: a
+   second use would stop it meaning "this one is being lost". */
+.front__overdue {
+  color: var(--failure-text);
+  font-weight: 700;
+}
+
+.front__row[data-overdue="yes"] {
+  border-inline-start: 3px solid var(--failure);
+}
+
+.front__panel {
+  max-height: min(44dvh, 380px);
+  overflow-y: auto;
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.front__what {
+  margin: 0 0 var(--space-2);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--border-1);
+}
+
+.front__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.front__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--text-1);
+  text-align: start;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.front__row:hover {
+  background: var(--surface-2);
+}
+
+.front__row[data-selected="yes"] {
+  background: var(--surface-3);
+  border-color: var(--border-2);
+}
+
+.front__order {
+  color: var(--text-3);
+  flex: 0 0 auto;
+  min-width: 14px;
+}
+
+.front__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.front__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.front__rule {
+  overflow-wrap: anywhere;
+}
+
+.front__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.front__loot {
+  color: var(--accent-text);
+}
+
+.front__verb {
+  color: var(--text-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-dot);
+  background: var(--surface-3);
+}
+
+/* The target sheet */
+
+.sheet {
+  /* Without this declaration none of the sheet's `@container panel` queries
+     ever fire, and nothing reports it: a query that does not find its named
+     container simply never applies, so the narrow layout wins in silence. */
+  container-type: inline-size;
+  container-name: panel;
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 6;
+  width: min(var(--sheet-width), 100%);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface-1);
+  border-inline-start: 1px solid var(--border-1);
+  box-shadow: var(--shadow-3);
+  animation: sheet-enter var(--duration-short) var(--curve);
+}
+
+@keyframes sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Declared at top level, never inside the `@container` that uses it: nesting
+   `@keyframes` in a conditional rule is valid but unevenly supported, and an
+   animation whose steps do not exist just does not play. */
+@keyframes sheet-rise {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The head does not scroll: rank, name, both figures and the current step stay
+   in view whatever the open tab and whatever the scroll position. */
+.sheet__head {
+  /* `flex: 0 1 auto` with a cap: at `0 0 auto` the head grew to 850 px on a
+     1400 px screen and squeezed the tab below it to a slit. The cap is a `%`
+     of the drawer, not `vh`: on a phone the sheet is a bottom sheet. */
+  flex: 0 1 auto;
+  max-block-size: 55%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--border-1);
+  min-width: 0;
+}
+
+/* In a head we are trying to shorten, the rank chip does not need its full
+   plate padding. */
+.sheet__head .rarity--card {
+  padding: var(--space-2);
+}
+
+.sheet__head-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.sheet__close {
+  flex: 0 0 auto;
+}
+
+.sheet__name {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.sheet__address {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Side by side above 380 px of CONTAINER, not of window: the drawer is 480 px
+   wide on a 2560 px screen, and a media query would hand it the wide layout. */
+.sheet__figures {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  margin-block-start: var(--space-1);
+}
+
+@container panel (min-width: 380px) {
+  .sheet__figures {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.sheet__figure {
+  min-width: 0;
+}
+
+/* The resistance is a BUTTON, not a display: it leads to the factor breakdown,
+   so it must look clickable at rest — hover does not exist under a finger. */
+.sheet__to-calculation {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.sheet__to-calculation-prompt {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.sheet__to-calculation:hover .sheet__to-calculation-prompt {
+  text-decoration-thickness: 2px;
+}
+
+.sheet__action {
+  display: flex;
+  margin-block-start: var(--space-1);
+}
+
+.sheet__action > * {
+  flex: 1 1 auto;
+}
+
+/* --- Tabs: same convention as the left rail (`.territory__tab`) --- */
+.sheet__tabs {
+  display: flex;
+  flex: 0 0 auto;
+  border-block-end: 1px solid var(--border-1);
+}
+
+.sheet__tab {
+  flex: 1 1 0;
+  min-height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border: 0;
+  border-block-end: 2px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.sheet__tab[aria-selected="true"] {
+  color: var(--text-1);
+  border-block-end-color: var(--accent);
+}
+
+/* The count reads without opening the tab. */
+.sheet__tab-count {
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet__body {
+  /* `1 1 0` and not `1 1 auto`: with `auto` the flex basis is the CONTENT
+     height, so a loaded tab pushes the head differently from an empty one. */
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  /* Room for the attribution control, which sits above everything. */
+  padding-block-end: calc(var(--space-7) + var(--space-4));
+}
+
+.sheet__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+/* A field, and above all an EMPTY field: on the right there is either the
+   value or the action that fills it, never nothing. */
+
+.sheet__fields {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-3);
+}
+
+.field {
+  display: grid;
+  grid-template-columns: minmax(96px, 34%) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-block-end: 1px solid var(--border-1);
+  min-width: 0;
+}
+
+.field:last-child {
+  border-block-end: 0;
+}
+
+/* Under 300 px of CONTAINER the name moves above: two columns at that width
+   crush the value to a handful of pixels. */
+@container panel (max-width: 300px) {
+  .field {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+.field__name {
+  color: var(--text-2);
+  min-width: 0;
+}
+
+.field__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field__text {
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.field__empty {
+  color: var(--text-3);
+}
+
+/* The action is coloured like a link, which is what separates it from an inert
+   "nothing to do" reason. */
+.field__action {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent-text);
+  text-align: start;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.field__action:hover {
+  text-decoration-thickness: 2px;
+}
+
+.field__action:disabled {
+  color: var(--text-3);
+  cursor: default;
+  text-decoration: none;
+}
+
+/* "Nothing can fill it" is not clickable and must not look like it. */
+.field__reason {
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}
+
+.field__entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  width: 100%;
+}
+
+.field__input {
+  flex: 1 1 140px;
+  min-width: 0;
+  min-height: var(--touch-target);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-1);
+  background: var(--surface-1);
+  color: var(--text-1);
+  font: inherit;
+}
+
+.field__input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* --- The fold: a native `<details>`, so browser find (Cmd-F) opens it on its
+   own to highlight a match. A `useState` fold hides the content from find. --- */
+.sheet__all {
+  min-width: 0;
+}
+
+.sheet__all-summary {
+  cursor: pointer;
+  color: var(--accent-text);
+  padding: var(--space-2) 0;
+  min-height: var(--touch-target);
+  display: flex;
+  align-items: center;
+}
+
+.sheet__all-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block-start: var(--space-2);
+}
+
+.sheet__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+
+.sheet__alert {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.sheet__alert strong {
+  color: var(--text-1);
+}
+
+.sheet__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Wraps rather than crushing the heading: the panel goes down to 300 px of
+   CONTAINER, where a long heading and two source badges do not fit on one
+   line. */
+.sheet__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.sheet__section-head > form {
+  flex: 0 0 auto;
+}
+
+.sheet__section p {
+  margin: 0;
+}
+
+.sheet__facts {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet__fact-note {
+  color: var(--text-2);
+  margin: 0 0 var(--space-3);
+}
+
+.sheet__factors {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sheet__factor {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.sheet__factor span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sheet__factor-value {
+  flex: 0 0 auto;
+  color: var(--text-2);
+}
+
+.sheet__factor[data-weight="high"] .sheet__factor-value {
+  color: var(--success-text);
+}
+
+.sheet__factor[data-weight="low"] .sheet__factor-value,
+.sheet__factor[data-weight="zero"] .sheet__factor-value {
+  color: var(--failure-text);
+}
+
+.sheet__factor--total {
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--border-1);
+}
+
+/* --- The approach --- */
+
+/* The staircase is vertical: in four columns a step cannot carry its name, its
+   date and its verb without falling to three characters per column on a sheet
+   whose usable width goes down to 152 px. */
+.sheet__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sheet__step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-1) var(--space-3);
+  border: var(--hairline) solid transparent;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--text-3);
+  text-align: start;
+  min-width: 0;
+}
+
+.sheet__step-dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-dot);
+  border: var(--hairline) solid var(--border-2);
+  background: transparent;
+}
+
+.sheet__step-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheet__step-right {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* --- A PAST step: it carries its date, nothing more --- */
+
+.sheet__steps li[data-position="past"] .sheet__step {
+  color: var(--text-1);
+}
+.sheet__steps li[data-position="past"] .sheet__step-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+/* --- The CURRENT step: framed, this is where the deal stands --- */
+
+.sheet__steps li[data-position="current"] .sheet__step {
+  color: var(--text-1);
+  border-color: var(--accent);
+  background: var(--accent-veil);
+}
+.sheet__steps li[data-position="current"] .sheet__step-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.sheet__steps li[data-position="current"] .sheet__step-right {
+  color: var(--accent-text);
+}
+
+/* --- A FUTURE step: offered, hence the dashed border --- */
+
+.sheet__steps li[data-position="future"] .sheet__step {
+  border-color: var(--border-1);
+  border-style: dashed;
+}
+
+/* Only a genuinely reachable step behaves as a button: `nextStepsFor` limits
+   the destinations, and a closed future step stays an inert row. */
+button.sheet__step {
+  cursor: pointer;
+}
+button.sheet__step:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--border-2);
+}
+button.sheet__step:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sheet__steps li[data-position="future"] button.sheet__step .sheet__step-right {
+  color: var(--text-2);
+}
+
+/* --- The exits, one floor below --- */
+
+/* A label does not share a line with its buttons: "EXITS", "WITHDRAW" and
+   "SET ASIDE" were graphically identical, and the only clickability cue —
+   hover colour — does not exist on a phone. */
+.sheet__exits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border-1);
+}
+
+.sheet__exit-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* The tools, on their own floor: without this rule they followed the two exits
+   with nothing to say that they commit to nothing. */
+.sheet__tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border-1);
+}
+
+/* "COPY AS PROMPT" is fourteen characters, "COPIED ✓" is eight: without a
+   floor the row reflows under the finger at the instant of the click. */
+.sheet__copy {
+  min-width: 7.5rem;
+}
+
+.sheet__fold {
+  color: var(--failure-text);
+}
+
+.sheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.sheet__entry-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Undo is the only fact deletion in the product: its panel takes the failure
+   edge, not the gold one. */
+.sheet__undo {
+  border-color: var(--failure);
+}
+
+.sheet__undo p {
+  margin: 0;
+}
+
+/* Sticky, and that is a fix: after the split into tabs this message sat two
+   thousand pixels below the button that triggers it, inside a scrolling
+   container — displayed and invisible at once. The opaque background and the
+   hairline are not decorative: without them the text overlaps what scrolls
+   underneath. */
+.sheet__message {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 5;
+  margin-block-start: auto;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+}
+
+.sheet__message[data-status="error"],
+.sheet__error {
+  color: var(--failure-text);
+}
+
+.sheet__message[data-status="success"] {
+  color: var(--success-text);
+}
+
+.sheet__stale {
+  color: var(--failure-text);
+}
+
+/* --- The neighbours --- */
+
+.sheet__neighbours {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sheet__neighbour {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  background: var(--surface-2);
+  color: var(--text-1);
+  text-align: start;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.sheet__neighbour:hover {
+  border-color: var(--border-2);
+}
+
+.sheet__neighbour[data-state="taken"] {
+  border-color: var(--success);
+}
+
+.sheet__neighbour-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* --- The log: a game-free zone --- */
+
+.sheet__log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sheet__entry {
+  display: flex;
+  gap: var(--space-3);
+  min-width: 0;
+  color: var(--text-2);
+}
+
+.sheet__entry-date {
+  flex: 0 0 auto;
+  color: var(--text-3);
+}
+
+.sheet__entry-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sheet__entry-note {
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+
+/* Layout folds, all driven by the `screen` CONTAINER, never by the window. */
+
+/* On a large screen the rail is a column: its toggle has nothing to do. */
+@container screen (min-width: 1001px) {
+  .map__rail-toggle {
+    display: none;
+  }
+
+  /* The drawer overlays this corner and the map keeps its width. */
+  .map[data-collapsed="no"][data-sheet="open"] .map__tools {
+    translate: calc(-1 * var(--sheet-width)) 0;
+  }
+
+  /* Centred on the MAP: on what is left of it, or the tools land on it. */
+  .map[data-collapsed="no"][data-sheet="open"] .map__search {
+    translate: calc(-50% - var(--sheet-width) / 2) 0;
+  }
+}
+
+@container screen (max-width: 1000px) {
+  .territory__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The rail becomes a drawer: it slides by `transform`, never by `left`. */
+  .territory__rail {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 7;
+    width: min(320px, 88%);
+    transform: translateX(-102%);
+    box-shadow: var(--shadow-3);
+  }
+
+  .territory__rail[data-open="yes"] {
+    transform: translateX(0);
+  }
+
+  /* The sheet becomes a BOTTOM SHEET: one hand, thumb at the bottom. */
+  .sheet {
+    inset-block: auto 0;
+    inset-inline: 0;
+    width: 100%;
+    max-height: 86dvh;
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--border-2);
+    border-start-start-radius: var(--radius-4);
+    border-start-end-radius: var(--radius-4);
+    animation-name: sheet-rise;
+  }
+
+  /* The grab handle. */
+  .sheet__head::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 6px;
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    width: 36px;
+    height: 4px;
+    border-radius: var(--radius-dot);
+    background: var(--border-2);
+  }
+
+  .sheet__head {
+    position: relative;
+    padding-block-start: var(--space-4);
+  }
+
+  .map__front,
+  .map__hold,
+  .map__work {
+    inset-block-end: auto;
+  }
+
+  /* On a phone the top overlays also go back into the flow: at 390 px the
+     toolbar and the daily front landed on the very same point, with the hold
+     dot on top. Same fix as with no map: a column, in reading order. */
+  .map {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .map__tools {
+    position: static;
+    order: 1;
+    max-width: none;
+    margin: var(--space-3) var(--space-3) 0;
+  }
+
+  /* The control stack lies down: as a column, three 44 px pills make 148 px
+     pinned to the right edge and fall over the front and the hold below. */
+  .map__controls {
+    flex-direction: row;
+  }
+
+  /* And the tooltip drops BELOW: on the right edge, a bubble opening to the
+     left would cover the two neighbouring controls. */
+  .tooltip--left::after {
+    inset-inline: auto 0;
+    inset-block: calc(100% + var(--space-2)) auto;
+    translate: none;
+  }
+
+  .map__front {
+    position: static;
+    order: 2;
+    width: auto;
+    margin: var(--space-3);
+  }
+
+  /* The hold badge goes into the flow too: floating, it takes 176 x 122 px of
+     the top-right corner — a fifth of a 390 px map — over the toolbar or the
+     daily front. */
+  .map__hold {
+    position: static;
+    order: 3;
+    align-self: flex-end;
+    margin: 0 var(--space-3) var(--space-3);
+  }
+
+  .map__work {
+    inset-block-start: auto;
+    inset-block-end: var(--space-6);
+    width: min(340px, calc(100% - var(--space-6)));
+  }
+
+  /* Search joins the column, first: floating at top centre it would land on
+     the control stack, which is now in the flow at the same place. */
+  .map__search {
+    position: static;
+    order: 0;
+    align-self: center;
+    translate: none;
+    margin: var(--space-3) var(--space-3) 0;
+    max-width: calc(100% - var(--space-6));
+  }
+
+  .map__work + .map__work {
+    inset-block-start: auto;
+    inset-block-end: calc(var(--space-6) + 200px);
+  }
+}
+
+/* `globals.css` already cuts durations to 0.01 ms under reduced motion; this
+   override removes the drawer's travel as well. */
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}

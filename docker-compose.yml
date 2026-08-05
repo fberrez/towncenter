@@ -1,0 +1,38 @@
+# =============================================================================
+# Towncenter — the development database.
+#
+#   docker compose up -d
+#   npm run db:push
+#   npm run dev
+#
+# This file runs Postgres and nothing else. The application runs beside it with
+# `npm run dev`, which is what keeps hot reload and readable logs while you
+# work.
+# =============================================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: towncenter-pg
+    environment:
+      POSTGRES_USER: towncenter
+      POSTGRES_PASSWORD: towncenter
+      POSTGRES_DB: towncenter
+    ports:
+      # 5455 rather than 5432: most development machines already run a Postgres
+      # on the standard port, and the conflict only shows up on the first query.
+      - "5455:5432"
+    volumes:
+      # A NAMED volume, not an anonymous one. Without this line the data lives
+      # in the container's writable layer and a `docker rm` takes it away
+      # without a word.
+      - towncenter-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U towncenter -d towncenter"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  towncenter-pgdata:

@@ -1,0 +1,49 @@
+/* The account, in the rail. */
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The name gives way before anything else: the rail carries FIGURES, and a long
+   address must push nobody out. */
+.name {
+  overflow: hidden;
+  max-width: 15ch;
+  font-size: 12px;
+  color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signout {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.signout:hover {
+  color: var(--text-1);
+}
+
+.signout:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+@media (max-width: 720px) {
+  /* On a phone the rail is already full: the name goes, the button stays. The
+     EXIT is never removed — it is what protects the file on a shared machine. */
+  .name {
+    display: none;
+  }
+}

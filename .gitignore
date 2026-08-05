@@ -1,0 +1,23 @@
+node_modules/
+.next/
+out/
+build/
+
+.env*.local
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Browser test artefacts
+.playwright-mcp/
+*.png.tmp
+
+# The SQLite era, and the benches that still write there. `prospections.db` is a
+# REAL ledger — businesses, a signed deal, an amount actually collected. Real
+# client data in a public repository is the mistake that already cost this
+# project its entire history; a commit does not remove it, only a new history
+# does. It stays out, and it stays out by rule rather than by vigilance.
+/data/
+
+# Agent worktrees: whole nested checkouts of this same repository.
+.claude/worktrees/
