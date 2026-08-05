@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import type { Route } from "next";
 
-import { requireUser, type Account } from "@/lib/accounts";
+import { requireUser } from "@/lib/accounts";
 import { getOnboardingFacts, type OnboardingFacts } from "@/app/queries";
 import { Button, Panel, Tag } from "@/components/ui";
 import { WorldMap } from "@/components/gate/WorldMap";
@@ -200,7 +200,7 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
         <PlacesKeyForm />
         <p className="t-body-s tone-3">
           Stored on this instance, used server-side only. One billed request is
-          made when you click "Check the key".
+          made when you click &ldquo;Check the key&rdquo;.
         </p>
       </Panel>
       <Link href="/onboarding?step=grid" className={styles.stepLink}>
@@ -217,7 +217,7 @@ function GridStep({ facts }: { facts: OnboardingFacts }) {
       <p className="t-body">
         Every amount on the map comes from your grid: the loot on a target, the
         treasure of a sector, the rank of a business. The default grid ships
-        with the product — one freelancer's real rates, a starting point.
+        with the product — one freelancer&rsquo;s real rates, a starting point.
       </p>
       {facts.hasCustomGrid ? (
         <p className="t-body-s tone-2">

@@ -3,10 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { Button } from "@/components/ui";
-import {
-  INITIAL_PLACES_KEY_STATE,
-  type PlacesKeyState,
-} from "./state";
+import { INITIAL_PLACES_KEY_STATE } from "./state";
 import {
   testPlacesKeyAction,
   savePlacesKeyAction,
