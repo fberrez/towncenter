@@ -49,10 +49,10 @@ import { ENRICH_BATCH_SIZE } from "@/lib/limits";
 import { harvestSlice, openZone, resumeZone } from "@/lib/harvest";
 import { purgeStaleGoogleFacts } from "@/lib/retention";
 import { auditSite } from "@/lib/sources/audit";
+import { getPlacesKey } from "@/lib/settings";
 import {
   findPlaceFor,
   isGoogleDataStale,
-  isPlacesConfigured,
   PlacesError,
 } from "@/lib/sources/places";
 import {
@@ -493,7 +493,8 @@ type EnrichOutcome =
   /** the provider answered badly; nothing was written */
   | { status: "failed"; message: string; fatal: boolean };
 
-async function enrichOne(record: Target, googleOn: boolean): Promise<EnrichOutcome> {
+async function enrichOne(record: Target, googleKey: string | null): Promise<EnrichOutcome> {
+  const googleOn = googleKey !== null;
   const patch: Partial<NewTarget> = {};
   let attempted = false;
 
@@ -518,7 +519,7 @@ async function enrichOne(record: Target, googleOn: boolean): Promise<EnrichOutco
         address: record.address,
         postalCode: record.postalCode,
         city: record.city,
-      });
+      }, { key: googleKey });
 
       attempted = true;
 
@@ -616,9 +617,10 @@ async function enrichOne(record: Target, googleOn: boolean): Promise<EnrichOutco
 const LIVE_STATES: readonly TargetState[] = ["spotted", "studied", "engaged"];
 
 const MESSAGE_NO_KEY =
-  "No Google key: enrichment cannot run. Set GOOGLE_PLACES_API_KEY, then restart. " +
-  "Google is the only source of a website address, and without one the in-house " +
-  "site audit has nothing to read. Surveying, directors and the map keep working without it.";
+  "No Google key: enrichment cannot run. Set GOOGLE_PLACES_API_KEY, or add your " +
+  "key on the Setup screen instead — that one needs no restart. Google is the " +
+  "only source of a website address, and without one the in-house site audit " +
+  "has nothing to read. Surveying, directors and the map keep working without it.";
 
 function pendingCondition(googleOn: boolean): SQL {
   const cutoff = new Date(Date.now() - GOOGLE_FRESHNESS_DAYS * 86_400_000);
@@ -665,7 +667,8 @@ export async function enrichZoneAction(
     );
   }
 
-  if (!isPlacesConfigured()) {
+  const googleKey = await getPlacesKey(owner.id);
+  if (!googleKey) {
     return fail(previous, MESSAGE_NO_KEY, {}, values);
   }
 
@@ -732,7 +735,7 @@ export async function enrichZoneAction(
       break;
     }
 
-    const outcome = await enrichOne(record, googleOn);
+    const outcome = await enrichOne(record, googleKey);
     if (outcome.status === "enriched") enriched += 1;
     if (outcome.status === "failed") {
       failure = { message: outcome.message, fatal: outcome.fatal };
@@ -830,13 +833,13 @@ export async function enrichTargetAction(
 
   if (!record) return fail(previous, "Business not found.", {}, values);
 
-  if (!isPlacesConfigured()) {
+  const googleKey = await getPlacesKey(owner.id);
+  if (!googleKey) {
     return fail(previous, MESSAGE_NO_KEY, {}, values);
   }
 
-  const googleOn = true;
   const purged = await purgeStaleGoogleFacts();
-  const outcome = await enrichOne(record, googleOn);
+  const outcome = await enrichOne(record, googleKey);
 
   // successes are logged too, not just failures: without this line the hosting
   // logs show nothing at all and there is no way to tell whether the action ran
@@ -851,7 +854,7 @@ export async function enrichTargetAction(
     enriched: outcome.status === "enriched" ? 1 : 0,
     remaining: 0,
     unreachable: outcome.status === "impossible" ? 1 : 0,
-    googleUsed: googleOn,
+    googleUsed: true,
     purged,
     budgetSpent: false,
   };

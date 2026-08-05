@@ -73,6 +73,9 @@ export const users = pgTable(
       .notNull()
       .defaultNow(),
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+
+    /** Set once the account has been through `/onboarding`; null means still owed the setup. */
+    onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
   },
   (table) => [
     /** The only guard against two simultaneous signups on the same address. */
@@ -298,6 +301,21 @@ export const priceGrids = pgTable("price_grids", {
     .defaultNow(),
 });
 
+// Like `price_grids`: one row per account, a missing row plays on the environment's key.
+export const accountSettings = pgTable("account_settings", {
+  ownerId: text("owner_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+
+  googlePlacesKey: text("google_places_key"),
+
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type AccountSettings = typeof accountSettings.$inferSelect;
+export type NewAccountSettings = typeof accountSettings.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Target = typeof targets.$inferSelect;

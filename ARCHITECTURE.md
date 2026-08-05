@@ -39,10 +39,10 @@ instance**; self-hosting stays a first-class path under AGPL, permanently.
 > reinstate it believing you are correcting a scope drift — it is a decision,
 > and it is dated.
 
-**None of that layer is built.** Five tables — `users`, `targets`, `zones`,
-`events`, `price_grids` — and zero stored bytes: no object storage, no blob
-column, no multipart handler. Until a table exists, the docs say "to be
-built", not "coming soon".
+**None of that layer is built.** Six tables — `users`, `targets`, `zones`,
+`events`, `price_grids`, `account_settings` — and zero stored bytes: no object
+storage, no blob column, no multipart handler. Until a table exists, the docs
+say "to be built", not "coming soon".
 
 Three things do not move with the widening:
 
@@ -73,7 +73,7 @@ modules. Node 22+. No test framework: three executable benches under
 | `lib/game.ts` | Ranks, rarity, XP, levels, streaks, seasons |
 | `lib/priceGrid.ts` | `DEFAULT_PRICE_GRID` and its validation schema |
 | `lib/sources/` | SIRENE, IGN geocoder, Google Places, in-repo site audit |
-| `lib/db/schema.ts` | The five tables and their indexes |
+| `lib/db/schema.ts` | The six tables and their indexes |
 | `scripts/verify-*.mts` | The benches |
 
 ---
@@ -192,7 +192,7 @@ address.
 
 ## Data model, database and tenancy
 
-Five tables: `users`, `targets`, `zones`, `events`, `price_grids`.
+Six tables: `users`, `targets`, `zones`, `events`, `price_grids`, `account_settings`.
 
 **`rowid` does not exist in Postgres.** Two reads relied on it to break ties
 between facts written in the same second; without a tiebreak, "roll back"

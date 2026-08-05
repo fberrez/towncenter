@@ -1687,6 +1687,10 @@ export function TerritoryMap({
                       Pricing
                     </MenuLink>
 
+                    <MenuLink href={"/onboarding" as Route} onClick={close}>
+                      Setup
+                    </MenuLink>
+
                     {/* The label names the DESTINATION, never the current
                         state: in a list, "Dark" alone reads as the state you
                         are already in. */}
@@ -1799,8 +1803,9 @@ export function TerritoryMap({
                   {enrichLoop ? "Enriching…" : "Enrich this frame"}
                 </Button>
                 <p className="t-body-s tone-3">
-                  Google first, then the in-house site audit. Enrichment needs
-                  GOOGLE_PLACES_API_KEY: Google is the only source of a website
+                  Google first, then the in-house site audit. Enrichment needs a
+                  Google Places key — add one on the Setup screen, or set
+                  GOOGLE_PLACES_API_KEY. Google is the only source of a website
                   address, and the audit has nothing to read without one. It advances
                   nobody — it only adds facts.
                 </p>

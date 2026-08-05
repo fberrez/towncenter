@@ -13,7 +13,7 @@ becomes a project that holds its documents** — quote, mockup, deliverables —
 and a hosted instance is the longer-term ambition. Self-hosting stays a
 first-class path under AGPL, permanently.
 
-**None of that layer exists yet** — five tables, zero uploaded bytes. That is
+**None of that layer exists yet** — six tables, zero uploaded bytes. That is
 the open ground for contributions, with two boundaries that hold regardless:
 it is still not a CRM (no sales cycles, no teams, no roles, no email sending),
 and the map is not allowed to become one view among several.
