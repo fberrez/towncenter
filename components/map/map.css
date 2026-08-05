@@ -1643,16 +1643,6 @@ button.sheet__step:disabled {
   gap: var(--space-3);
 }
 
-/* Undo is the only fact deletion in the product: its panel takes the failure
-   edge, not the gold one. */
-.sheet__undo {
-  border-color: var(--failure);
-}
-
-.sheet__undo p {
-  margin: 0;
-}
-
 /* Sticky, and that is a fix: after the split into tabs this message sat two
    thousand pixels below the button that triggers it, inside a scrolling
    container — displayed and invisible at once. The opaque background and the
