@@ -34,6 +34,7 @@ import {
 import type { TargetDetail } from "@/app/queries";
 import {
   Button,
+  ConfirmDialog,
   Loot,
   Stamp,
   Difficulty,
@@ -754,45 +755,49 @@ export function TargetSheet({
                     </div>
                   </div>
 
-                  {confirmUndo && lastEvent ? (
-                    <form action={undo} className="sheet__entry-input sheet__undo panel">
-                      <input type="hidden" name="id" value={target.id} />
-                      <Tag as="p">Undo the last fact</Tag>
-                      <p className="t-body tnum">
-                        {`${EVENT_LABEL[lastEvent.kind]} on ${shortDate(lastEvent.occurredAt) ?? "?"}`}
-                        {lastEvent.valueCents !== null
-                          ? ` · ${formatEuros(lastEvent.valueCents, { decimals: "never" })}`
-                          : ""}
-                        {lastEvent.xp > 0 ? ` · ${lastEvent.xp} progress points` : ""}
-                      </p>
-                      {lastEvent.note ? (
-                        <p className="t-body-s tone-2">{lastEvent.note}</p>
-                      ) : null}
-                      {/* This is the only destructive gesture in the product,
-                          so the confirmation names what is erased and what it
-                          costs. */}
-                      <p className="t-body-s tone-3">
-                        {lastEvent.valueCents !== null
-                          ? "This fact will be erased from the log: the progress it earned is returned, and the amount leaves the season tally. The state falls back to whatever the remaining log justifies."
-                          : "This fact will be erased from the log: the progress it earned is returned. The state falls back to whatever the remaining log justifies — never to a guessed step backwards."}
-                      </p>
-                      <div className="sheet__actions">
-                        <Button type="submit" ton="secondaire" disabled={inProgress}>
-                          {undoPending ? "…" : "Erase this fact"}
-                        </Button>
-                        <Button
-                          ton="discret"
-                          disabled={inProgress}
-                          onClick={() => setConfirmUndo(false)}
-                        >
-                          Keep
-                        </Button>
-                      </div>
-                    </form>
-                  ) : null}
+                  <ConfirmDialog
+                    open={confirmUndo && lastEvent !== null}
+                    title="Undo the last fact?"
+                    onCancel={() => setConfirmUndo(false)}
+                    className="confirm-dialog__card--danger"
+                  >
+                    {lastEvent ? (
+                      <>
+                        <p className="t-body tnum">
+                          {`${EVENT_LABEL[lastEvent.kind]} on ${shortDate(lastEvent.occurredAt) ?? "?"}`}
+                          {lastEvent.valueCents !== null
+                            ? ` · ${formatEuros(lastEvent.valueCents, { decimals: "never" })}`
+                            : ""}
+                          {lastEvent.xp > 0 ? ` · ${lastEvent.xp} progress points` : ""}
+                        </p>
+                        {lastEvent.note ? (
+                          <p className="t-body-s tone-2">{lastEvent.note}</p>
+                        ) : null}
+                        <p className="t-body-s tone-3">This action cannot be undone.</p>
+                        <form action={undo} className="sheet__actions">
+                          <input type="hidden" name="id" value={target.id} />
+                          <Button
+                            type="button"
+                            ton="discret"
+                            disabled={inProgress}
+                            onClick={() => setConfirmUndo(false)}
+                          >
+                            Keep
+                          </Button>
+                          <Button type="submit" ton="secondaire" disabled={inProgress}>
+                            {undoPending ? "…" : "Erase this fact"}
+                          </Button>
+                        </form>
+                      </>
+                    ) : null}
+                  </ConfirmDialog>
 
-                  {input === "taken" ? (
-                    <form action={advance} className="sheet__entry-input panel">
+                  <ConfirmDialog
+                    open={input === "taken"}
+                    title="Record the take?"
+                    onCancel={() => setInput(null)}
+                  >
+                    <form action={advance} className="sheet__entry-input">
                       <input type="hidden" name="id" value={target.id} />
                       <input type="hidden" name="to" value="taken" />
                       <label className="sheet__field">
@@ -807,6 +812,9 @@ export function TargetSheet({
                           placeholder="3 500"
                           className="sheet__input tnum"
                           required
+                          ref={(node) => {
+                            node?.focus({ preventScroll: true });
+                          }}
                         />
                         <span className="t-body-s tone-3">
                           {offGrid
@@ -823,11 +831,21 @@ export function TargetSheet({
                           placeholder="Signed after Tuesday’s visit."
                         />
                       </label>
-                      <Button type="submit" ton="primary" disabled={inProgress}>
-                        Record the take
-                      </Button>
+                      <div className="sheet__actions">
+                        <Button
+                          type="button"
+                          ton="discret"
+                          disabled={inProgress}
+                          onClick={() => setInput(null)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" ton="primary" disabled={inProgress}>
+                          {advancePending ? "…" : "Record the take"}
+                        </Button>
+                      </div>
                     </form>
-                  ) : null}
+                  </ConfirmDialog>
 
                   {input === "withdrawn" ? (
                     <form action={advance} className="sheet__entry-input panel">

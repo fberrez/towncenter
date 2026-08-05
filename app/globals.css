@@ -1926,6 +1926,66 @@ li:hover .source,
 }
 
 /* ==========================================================================
+   CONFIRM DIALOG — gates the one destructive gesture in the product (undo).
+
+   Same veil-plus-card shell as the stamp, but modal: it does not vanish on a
+   timer, Escape and the veil both cancel, and the edge takes the failure
+   colour rather than the accent one, because it is always asking "erase
+   this?", never "look what just happened".
+   ========================================================================== */
+
+.confirm-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: var(--modal-veil);
+  animation: stamp-backdrop var(--duration-hover) var(--curve) both;
+}
+
+.confirm-dialog__card {
+  width: min(420px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: var(--space-5);
+  border-radius: var(--radius-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  box-shadow: var(--shadow-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: stamp-settle var(--duration-short) var(--curve) both;
+}
+
+/* Undo is the only fact deletion in the product: its card takes the failure
+   edge, not the neutral one — every other dialog just asks for input. */
+.confirm-dialog__card--danger {
+  border-color: var(--failure);
+}
+
+.confirm-dialog__card:focus-visible {
+  outline: none;
+}
+
+.confirm-dialog__title {
+  color: var(--text-2);
+}
+
+.confirm-dialog__card p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-dialog__card,
+  .confirm-dialog {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
    THE THEME TOGGLE.
 
    A bordered pill, a pictogram and a label — and both STATE THE DESTINATION,
