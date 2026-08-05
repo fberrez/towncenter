@@ -632,6 +632,7 @@
 }
 
 .map__settings {
+  width: min(340px, calc(100vw - var(--space-6)));
   max-height: min(52dvh, 460px);
   overflow-y: auto;
   display: flex;
