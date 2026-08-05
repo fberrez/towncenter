@@ -293,6 +293,7 @@ Contractual, not a setting.
 ## Benches
 
 ```bash
+npm run lint         # eslint, zero errors required
 npm run verify       # scoring, game, tenancy
 npm run typecheck    # next typegen && tsc --noEmit
 npm run build

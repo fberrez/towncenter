@@ -41,12 +41,13 @@ npm run verify         # all three, in order
 npm run verify:scoring # pure, no database needed
 npm run verify:game    # pure, no database needed
 npm run verify:tenancy # needs a real Postgres
+npm run lint           # eslint, zero errors required
 npm run typecheck      # next typegen && tsc --noEmit
 npm run build
 ```
 
-`typecheck`, `verify` and `build` must all be green before a pull request; CI
-runs exactly those three against a real Postgres. `verify:tenancy` runs on a
+`lint`, `typecheck`, `verify` and `build` must all be green before a pull
+request; CI runs exactly those against a real Postgres. `verify:tenancy` runs on a
 real database on purpose — a stub client returning empty arrays would pass
 every assertion.
 
@@ -78,6 +79,42 @@ Two rules about the benches:
   anything that varies goes in `ScoringContext`.
 - Tailwind for layout, CSS modules for components; any CSS token read back by
   `components/map/colors.ts` must be a literal hex or `rgb()`.
+
+---
+
+## Linting
+
+```bash
+npm run lint
+```
+
+ESLint 9 flat config (`eslint.config.mjs`) with `eslint-config-next`. Must pass
+with zero errors before a pull request; warnings are acceptable for known
+patterns (e.g. `setState` in `useEffect` for DOM reads after mount).
+
+---
+
+## Naming and imports
+
+| Element | Convention |
+|---|---|
+| React components | `PascalCase.tsx` |
+| Lib / utility files | `camelCase.ts` |
+| Variables, functions | `camelCase` |
+| Constants | `UPPER_SNAKE_CASE` |
+| Types, interfaces | `PascalCase` |
+
+**Imports**: absolute paths (`@/lib/scoring`) across directories, relative
+(`./types`) within the same directory. No barrel files (`index.ts`) except
+`lib/db/index.ts`.
+
+---
+
+## Commit messages
+
+Enforced by [commitlint](commitlint.config.js) + [Husky](.husky/commit-msg):
+[Conventional Commits](https://www.conventionalcommits.org/) — `feat:`, `fix:`,
+`docs:`, `refactor:`, `chore:`, etc.
 
 ---
 
@@ -116,6 +153,7 @@ Each cost a real bug; all are documented at length in
 
 - One subject per pull request.
 - Report what you **measured**, not what you expect.
+- `lint`, `typecheck`, `verify` and `build` must all be green.
 - Scoring change: `verify:scoring` must still land on the five real deals.
 - New table with `owner_id`: extend `verify-tenancy.mts` in the same pull
   request.

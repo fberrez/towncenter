@@ -54,7 +54,7 @@ export function Stamp({
   onClose,
 }: StampProps) {
   const [mounted, setMounted] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(true);
+  const [_reducedMotion, setReducedMotion] = useState(true);
   const closeButton = useRef<HTMLButtonElement>(null);
 
   // `onClose` must NOT be a dependency of the timer. Callers write

@@ -105,6 +105,7 @@ Enforced in code, not negotiable:
 ## Development
 
 ```bash
+npm run lint        # eslint, zero errors required
 npm run verify      # scoring, game, tenant isolation (needs the database)
 npm run typecheck   # next typegen && tsc --noEmit
 npm run build
