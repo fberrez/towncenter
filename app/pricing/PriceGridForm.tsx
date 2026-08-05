@@ -1,144 +1,79 @@
 "use client";
 
-// Entry is in euros, the contract is in cents. The conversion happens on BOTH
-// sides — here to display, in the action to save — and both go through a
-// string, never a float. Every field carries a hint saying what the number
-// commands, because a number nobody can explain will not be changed knowingly.
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useRef, useState } from "react";
 
-import { useActionState } from "react";
-
-import { Button, Panel } from "@/components/ui";
-import { Field } from "@/components/gate/Field";
-import type { PriceGrid, PriceOffer } from "@/lib/types";
+import { Button, RollingAmount } from "@/components/ui";
+import type { PriceGrid, ScoringFacts } from "@/lib/types";
 
 import { savePriceGridAction, resetPriceGridAction } from "./actions";
+import {
+  COUNT_FIELDS,
+  EURO_FIELDS,
+  centsToEuros,
+  readGridForm,
+  sameGrid,
+  type GridForm,
+} from "./form";
 import { INITIAL_PRICE_GRID_STATE } from "./state";
+import { Witness } from "./Witness";
 
-/** 200_000 -> "2000"; 120_050 -> "1200.50". Never a float. */
-function centsToEuros(cents: number): string {
-  const negative = cents < 0;
-  const absolute = Math.abs(cents);
-  const whole = Math.trunc(absolute / 100);
-  const rest = absolute % 100;
-  const text =
-    rest === 0 ? String(whole) : `${whole}.${String(rest).padStart(2, "0")}`;
-  return negative ? `-${text}` : text;
-}
-
-type PriceGridField = {
+type EditedField = {
   key: keyof PriceGrid;
+  tab: string;
   label: string;
-  hint: string;
+  when: string;
 };
 
-const OFFERS: PriceGridField[] = [
+const FIELDS: EditedField[] = [
   {
     key: "baseCents",
+    tab: "Base",
     label: "Base tier",
-    hint: "One page, one address, the client's photos. Also the lowest deal you would sign.",
+    when: "One address, few reviews, no usable photo — the lowest deal you would sign.",
   },
   {
     key: "fullSiteCents",
+    tab: "Full site",
     label: "Full site",
-    hint: "The default offer, and the one that sells most often. It is also the yardstick every rank is measured against.",
+    when: "One address, a site to build. The offer that sells most often, and the yardstick every rank is measured against.",
   },
   {
     key: "multiPageCents",
+    tab: "Multi-page",
     label: "Multi-page site",
-    hint: "Detailed menu, forms, booking — a structure rather than a storefront.",
+    when: "From six pages: detailed menu, forms, booking — a structure rather than a storefront.",
   },
   {
     key: "multiAddressCents",
+    tab: "Multi-address",
     label: "Multi-address site",
-    hint: "Two to five addresses. The work changes in nature, not just in volume.",
+    when: "Two to five addresses. The work changes in nature, not just in volume.",
   },
-];
-
-const ADJUSTMENTS: PriceGridField[] = [
-  {
-    key: "perExtraAddressCents",
-    label: "Per address beyond the second",
-    hint: "The second address is already paid for by the multi-address offer.",
-  },
-  {
-    key: "extraAddressCapCents",
-    label: "Cap on extra addresses",
-    hint: "Past this, the marginal cost of one more location page tends to zero.",
-  },
-  {
-    key: "bookingIntegrationCents",
-    label: "Booking to integrate",
-    hint: "The only line where integration time genuinely adds up: account, widget, trials.",
-  },
-  {
-    key: "noPhotoCents",
-    label: "No usable photo — discount",
-    hint: "Entered as a positive amount and stored as a discount. Not generosity: without photos the mock-up convinces less, so a lower quote that lands beats a higher one that does not.",
-  },
-];
-
-const BOUNDS: PriceGridField[] = [
-  {
-    key: "floorCents",
-    label: "Floor",
-    hint: "Below this, price stops being an argument and becomes a doubt — the buyer starts looking for what is missing.",
-  },
-  {
-    key: "ceilingCents",
-    label: "Ceiling",
-    hint: "Above this the figure leaves the communication budget for the investment budget, which is not decided by the same person. Applies only to the offers ticked below.",
-  },
-];
-
-const RECURRING: PriceGridField[] = [
   {
     key: "recurringBaseCents",
+    tab: "Monthly",
     label: "Monthly base",
-    hint: "Hosting, domain, backups, small fixes. Deliberately low: it keeps the relationship open, it is not where the margin is.",
-  },
-  {
-    key: "recurringPerExtraAddressCents",
-    label: "Monthly, per address beyond the first",
-    hint: "As many location pages to keep current.",
-  },
-  {
-    key: "recurringCapCents",
-    label: "Monthly cap",
-    hint: "Above this you are no longer selling maintenance but a standing engagement, which is contracted differently.",
+    when: "Hosting, domain, backups, small fixes. Deliberately low: it keeps the relationship open, it is not where the margin is.",
   },
 ];
 
-const COUNTS: PriceGridField[] = [
-  {
-    key: "valueHorizonMonths",
-    label: "Value horizon, in months",
-    hint: "How many months of recurring revenue the figure on the map includes. One financial year by default.",
-  },
-  {
-    key: "maxAddressesInGrid",
-    label: "Addresses before going off-grid",
-    hint: "Beyond this the decision is no longer taken by the person on the phone. A twenty-three-shop chain is not four times a six-shop chain.",
-  },
-  {
-    key: "complexSiteMinPages",
-    label: "Pages before the multi-page offer",
-    hint: "The point where design takes longer than integration.",
-  },
-  {
-    key: "fewReviewsForBase",
-    label: "Reviews below which the base tier applies",
-    hint: "Only fires alongside the two other conditions: one address, and no usable photo.",
-  },
-];
+const LEAVE_AFTER_MS = 5000;
 
-const CAPPABLE_OFFERS: { key: PriceOffer; label: string }[] = [
-  { key: "base", label: "Base tier" },
-  { key: "full-site", label: "Full site" },
-  { key: "multi-page", label: "Multi-page site" },
-  { key: "multi-address", label: "Multi-address site" },
-];
+const EDITED_KEYS = new Set<string>(FIELDS.map((item) => item.key));
+const KEPT_EURO_KEYS = EURO_FIELDS.filter((key) => !EDITED_KEYS.has(key));
+const KEPT_COUNT_KEYS = COUNT_FIELDS.filter((key) => !EDITED_KEYS.has(key));
 
-export function PriceGridForm({ grid }: { grid: PriceGrid }) {
+export type StepWitness = { who: string; facts: ScoringFacts };
+
+export function PriceGridForm({
+  grid,
+  witnesses,
+}: {
+  grid: PriceGrid;
+  witnesses: Record<string, StepWitness>;
+}) {
   const [state, action, inProgress] = useActionState(
     savePriceGridAction,
     INITIAL_PRICE_GRID_STATE,
@@ -148,99 +83,278 @@ export function PriceGridForm({ grid }: { grid: PriceGrid }) {
     INITIAL_PRICE_GRID_STATE,
   );
 
-  const moneyField = (item: PriceGridField) => (
-    <Field
-      key={item.key}
-      name={item.key}
-      label={`${item.label} (€)`}
-      defaultValue={centsToEuros(
-        Math.abs(grid[item.key] as number),
-      )}
-      error={state.fields[item.key]}
-      hint={item.hint}
-    />
-  );
+  const [read, setRead] = useState<GridForm>({ grid: grid, fields: {} });
+  const [step, setStep] = useState(1);
+  const [way, setWay] = useState<"forward" | "back">("forward");
+  const [smash, setSmash] = useState(0);
 
-  const countField = (item: PriceGridField) => (
-    <Field
-      key={item.key}
-      name={item.key}
-      label={item.label}
-      defaultValue={String(grid[item.key] as number)}
-      error={state.fields[item.key]}
-      hint={item.hint}
-    />
-  );
+  const dirty = read.grid === null || !sameGrid(read.grid, grid);
+  const shown = read.grid ?? grid;
+  const activeField = FIELDS[step]!;
+  const activeError = read.fields[activeField.key] ?? state.fields[activeField.key];
+  const witness = witnesses[activeField.key]!;
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
+  const carryFocus = useRef(false);
+
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+
+  const [finishing, setFinishing] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!finishing) return;
+    const timer = setTimeout(() => router.push("/" as Route), LEAVE_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, [finishing, router]);
+
+  useEffect(() => {
+    if (!carryFocus.current) return;
+    carryFocus.current = false;
+    slotRef.current
+      ?.querySelector<HTMLInputElement>("label:not([data-off]) input")
+      ?.select();
+  }, [step]);
+
+  const goTo = (next: number, direction?: "forward" | "back") => {
+    const wrapped = (next + FIELDS.length) % FIELDS.length;
+    setWay(direction ?? (wrapped > step ? "forward" : "back"));
+    setStep(wrapped);
+  };
+
+  const replay = (target: HTMLElement | null | undefined, mark: string) => {
+    if (!target) return;
+    target.removeAttribute(`data-${mark}`);
+    void target.offsetWidth;
+    target.setAttribute(`data-${mark}`, "");
+  };
+
+  const onEnter = () => {
+    replay(slotRef.current, "smashed");
+    setSmash((count) => count + 1);
+
+    if (step < FIELDS.length - 1) {
+      carryFocus.current = true;
+      goTo(step + 1, "forward");
+      return;
+    }
+
+    if (dirty) formRef.current?.requestSubmit();
+    setFinishing(true);
+  };
 
   return (
     <>
-      <form action={action} className="pricing__form">
-        <Panel title="The four offers">
-          <p className="t-body-s pricing__intro">
-            {
-              "A price is not computed, it is CHOSEN among the offers that exist and then adjusted. Change these four and every figure on the map follows, at the next read — nothing is stored."
+      <form
+        ref={formRef}
+        action={action}
+        className="pricing__layout"
+        data-smash={smash === 0 ? undefined : smash % 2 === 0 ? "a" : "b"}
+        onChange={(event) => setRead(readGridForm(new FormData(event.currentTarget)))}
+      >
+        <div
+          className="pricing__stage"
+          data-way={way}
+          onKeyDown={(event) => {
+            if (event.target instanceof HTMLButtonElement) return;
+
+            if (event.key === "Enter") {
+              event.preventDefault();
+              onEnter();
+              return;
             }
-          </p>
-          {OFFERS.map(moneyField)}
-        </Panel>
 
-        <Panel title="Adjustments">{ADJUSTMENTS.map(moneyField)}</Panel>
-
-        <Panel title="Bounds">
-          {BOUNDS.map(moneyField)}
-          <fieldset className="pricing__offers">
-            <legend className="t-label">Offers subject to the ceiling</legend>
-            <p className="t-body-s">
-              {
-                "The ones you sell in a single conversation, to one owner, on one address. Untick an offer and it escapes the ceiling."
-              }
-            </p>
-            {CAPPABLE_OFFERS.map((offer) => (
-              <label key={offer.key} className="pricing__cell">
-                <input
-                  type="checkbox"
-                  name="cappedOffers"
-                  value={offer.key}
-                  defaultChecked={grid.cappedOffers.includes(offer.key)}
-                />
-                <span>{offer.label}</span>
-              </label>
+            if (event.target instanceof HTMLInputElement) return;
+            if (event.key === "ArrowLeft") {
+              event.preventDefault();
+              goTo(step - 1, "back");
+            }
+            if (event.key === "ArrowRight") {
+              event.preventDefault();
+              goTo(step + 1, "forward");
+            }
+          }}
+        >
+          <div className="pricing__tabs">
+            {FIELDS.map((item, index) => (
+              <button
+                key={item.key}
+                type="button"
+                className="pricing__tab"
+                aria-pressed={index === step}
+                onClick={() => goTo(index)}
+              >
+                <i className="pricing__tab-name t-micro">{item.tab}</i>
+                <b className="pricing__tab-value tnum">
+                  <RollingAmount cents={Math.abs(shown[item.key] as number)} />
+                </b>
+              </button>
             ))}
-          </fieldset>
-        </Panel>
+          </div>
 
-        <Panel title="Monthly recurring">{RECURRING.map(moneyField)}</Panel>
+          <p className="pricing__when t-body-s">{activeField.when}</p>
 
-        <Panel title="Thresholds">{COUNTS.map(countField)}</Panel>
+          <div className="pricing__rig">
+            <button
+              type="button"
+              className="pricing__arrow"
+              aria-label={`Previous: ${FIELDS[(step - 1 + FIELDS.length) % FIELDS.length]!.label}`}
+              onClick={() => goTo(step - 1, "back")}
+            >
+              <Chevron />
+            </button>
 
-        {state.error ? (
-          <p className="t-body-s pricing__refusal" role="alert">
-            {state.error}
-          </p>
-        ) : null}
+            <div className="pricing__slot" ref={slotRef}>
+              {FIELDS.map((item, index) => (
+                <label
+                  key={item.key}
+                  className="pricing__big"
+                  data-off={index === step ? undefined : ""}
+                >
+                  <span className="sr-only">{item.label}</span>
+                  <input
+                    name={item.key}
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    defaultValue={centsToEuros(Math.abs(grid[item.key] as number))}
+                    className="pricing__big-input tnum"
+                    aria-invalid={activeError && index === step ? true : undefined}
+                    onInput={(event) => replay(event.currentTarget, "typing")}
+                  />
+                  <span className="pricing__big-unit" aria-hidden="true">
+                    €
+                  </span>
+                </label>
+              ))}
+            </div>
 
-        {state.saved ? (
-          <p className="t-body-s pricing__confirm" role="status">
-            {"Grid saved. Every price on the map already follows it."}
-          </p>
-        ) : null}
+            <button
+              type="button"
+              className="pricing__arrow"
+              data-next
+              aria-label={`Next: ${FIELDS[(step + 1) % FIELDS.length]!.label}`}
+              onClick={() => goTo(step + 1, "forward")}
+            >
+              <Chevron />
+            </button>
+          </div>
 
-        <div className="pricing__actions">
-          <Button type="submit" ton="primary" disabled={inProgress}>
-            {inProgress ? "Saving…" : "Save the grid"}
-          </Button>
+          {activeError ? (
+            <p className="pricing__refusal t-body-s" role="alert">
+              {activeError}
+            </p>
+          ) : null}
+
+          {KEPT_EURO_KEYS.map((key) => (
+            <input
+              key={key}
+              type="hidden"
+              name={key}
+              value={centsToEuros(Math.abs(grid[key]))}
+            />
+          ))}
+          <input
+            type="hidden"
+            name="noPhotoCents"
+            value={centsToEuros(Math.abs(grid.noPhotoCents))}
+          />
+          {KEPT_COUNT_KEYS.map((key) => (
+            <input key={key} type="hidden" name={key} value={String(grid[key])} />
+          ))}
+          {grid.cappedOffers.map((offer) => (
+            <input key={offer} type="hidden" name="cappedOffers" value={offer} />
+          ))}
+
+          {state.error ? (
+            <p className="pricing__refusal t-body-s" role="alert">
+              {state.error}
+            </p>
+          ) : null}
+
+          <div className="pricing__actions">
+            <Button
+              type="submit"
+              ton="primary"
+              className="pricing__save"
+              disabled={inProgress || (hydrated && !dirty)}
+            >
+              {inProgress ? "Saving…" : "Save the grid"}
+            </Button>
+            {state.saved && !dirty ? (
+              <p className="pricing__confirm t-body-s" role="status">
+                {"Saved. The map already follows."}
+              </p>
+            ) : null}
+          </div>
         </div>
+
+        <Witness
+          who={witness.who}
+          sample={witness.facts}
+          draft={read.grid}
+          saved={grid}
+        />
+
+        {finishing ? (
+          <div
+            className="pricing__done"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pricing-done-title"
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setFinishing(false);
+            }}
+          >
+            <div className="pricing__done-card">
+              <div className="pricing__done-timer" aria-hidden="true">
+                <span className="pricing__done-bar" />
+              </div>
+
+              <div className="pricing__done-body">
+                <h2 id="pricing-done-title" className="t-title-2">
+                  {state.error ? "Grid not saved" : "Grid saved"}
+                </h2>
+                <p className="t-body-s">
+                  {state.error
+                    ? state.error
+                    : "Every price on the map already follows it."}
+                </p>
+
+                <div className="pricing__done-act">
+                  <Button
+                    type="button"
+                    ton="primary"
+                    size="compacte"
+                    autoFocus
+                    onClick={() => router.push("/" as Route)}
+                  >
+                    {"Back to the map"}
+                  </Button>
+                  <Button
+                    type="button"
+                    ton="discret"
+                    size="compacte"
+                    onClick={() => setFinishing(false)}
+                  >
+                    {"Stay here"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </form>
 
       <form action={resetAction} className="pricing__reset">
-        <p className="t-body-s">
-          {
-            "Resetting removes your grid rather than overwriting it with the defaults. The difference matters the day the product's defaults change: an account that never decided anything follows, an account that copied them by hand does not."
-          }
-        </p>
         <Button type="submit" ton="discret" size="compacte" disabled={resetInProgress}>
           {resetInProgress ? "Resetting…" : "Back to the default grid"}
         </Button>
+        <p className="t-body-s">
+          {"Removes your grid rather than overwriting it: the day the defaults change, you follow."}
+        </p>
         {resetState.error ? (
           <p className="t-body-s pricing__refusal" role="alert">
             {resetState.error}
@@ -248,5 +362,24 @@ export function PriceGridForm({ grid }: { grid: PriceGrid }) {
         ) : null}
       </form>
     </>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M15 5 8 12l7 7" />
+    </svg>
   );
 }
