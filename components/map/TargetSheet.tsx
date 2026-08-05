@@ -757,7 +757,7 @@ export function TargetSheet({
 
                   <ConfirmDialog
                     open={confirmUndo && lastEvent !== null}
-                    title="Undo the last fact"
+                    title="Undo the last fact?"
                     onCancel={() => setConfirmUndo(false)}
                     className="confirm-dialog__card--danger"
                   >
@@ -773,19 +773,9 @@ export function TargetSheet({
                         {lastEvent.note ? (
                           <p className="t-body-s tone-2">{lastEvent.note}</p>
                         ) : null}
-                        {/* This is the only destructive gesture in the
-                            product, so the confirmation names what is erased
-                            and what it costs. */}
-                        <p className="t-body-s tone-3">
-                          {lastEvent.valueCents !== null
-                            ? "This fact will be erased from the log: the progress it earned is returned, and the amount leaves the season tally. The state falls back to whatever the remaining log justifies."
-                            : "This fact will be erased from the log: the progress it earned is returned. The state falls back to whatever the remaining log justifies — never to a guessed step backwards."}
-                        </p>
+                        <p className="t-body-s tone-3">This action cannot be undone.</p>
                         <form action={undo} className="sheet__actions">
                           <input type="hidden" name="id" value={target.id} />
-                          <Button type="submit" ton="secondaire" disabled={inProgress}>
-                            {undoPending ? "…" : "Erase this fact"}
-                          </Button>
                           <Button
                             type="button"
                             ton="discret"
@@ -794,6 +784,9 @@ export function TargetSheet({
                           >
                             Keep
                           </Button>
+                          <Button type="submit" ton="secondaire" disabled={inProgress}>
+                            {undoPending ? "…" : "Erase this fact"}
+                          </Button>
                         </form>
                       </>
                     ) : null}
@@ -801,7 +794,7 @@ export function TargetSheet({
 
                   <ConfirmDialog
                     open={input === "taken"}
-                    title="Record the take"
+                    title="Record the take?"
                     onCancel={() => setInput(null)}
                   >
                     <form action={advance} className="sheet__entry-input">
@@ -839,9 +832,6 @@ export function TargetSheet({
                         />
                       </label>
                       <div className="sheet__actions">
-                        <Button type="submit" ton="primary" disabled={inProgress}>
-                          {advancePending ? "…" : "Record the take"}
-                        </Button>
                         <Button
                           type="button"
                           ton="discret"
@@ -849,6 +839,9 @@ export function TargetSheet({
                           onClick={() => setInput(null)}
                         >
                           Cancel
+                        </Button>
+                        <Button type="submit" ton="primary" disabled={inProgress}>
+                          {advancePending ? "…" : "Record the take"}
                         </Button>
                       </div>
                     </form>
