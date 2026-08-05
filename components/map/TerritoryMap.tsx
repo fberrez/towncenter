@@ -1106,7 +1106,11 @@ export function TerritoryMap({
           name: sectorNameRef.current.trim() || "Unnamed sector",
         });
         setSurveyLoop(true);
-        surveyRef.current(startSurveyRef.current(bbox, sectorNameRef.current));
+        // startTransition is mandatory here too: called directly, React warns
+        // that useActionState was invoked outside a transition and surveyPending
+        // never flips, same trap as the resume call below.
+        const data = startSurveyRef.current(bbox, sectorNameRef.current);
+        startTransition(() => surveyRef.current(data));
       };
 
       live.on("mousedown", (event: MapMouseEvent) => {
