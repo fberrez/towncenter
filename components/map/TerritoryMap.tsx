@@ -1917,12 +1917,15 @@ export function TerritoryMap({
             </div>
           ) : null}
 
-          <DailyFront
-            rows={front}
-            selectedId={selectedId}
-            onSelect={select}
-            className="map__front"
-          />
+          {/* Rows span the whole territory: without a sector selected, the map has no matching point to anchor a tooltip on. */}
+          {sectorHere ? (
+            <DailyFront
+              rows={front}
+              selectedId={selectedId}
+              onSelect={select}
+              className="map__front"
+            />
+          ) : null}
 
           <Hold
             captures={stats.countByState.taken}

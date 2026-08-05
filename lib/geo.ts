@@ -17,6 +17,17 @@ export function normalizeBbox(bbox: Bbox): Bbox {
   };
 }
 
+// smallest box containing every box given; `null` on an empty list, which has none.
+export function unionBbox(bboxes: readonly Bbox[]): Bbox | null {
+  if (bboxes.length === 0) return null;
+  return bboxes.map(normalizeBbox).reduce((acc, box) => ({
+    minLat: Math.min(acc.minLat, box.minLat),
+    minLng: Math.min(acc.minLng, box.minLng),
+    maxLat: Math.max(acc.maxLat, box.maxLat),
+    maxLng: Math.max(acc.maxLng, box.maxLng),
+  }));
+}
+
 // approximate area in km2. The cosine matters: at the latitude of Paris a degree
 // of longitude is 73 km, and dropping it overestimates the area by half.
 export function areaKm2(bbox: Bbox): number {

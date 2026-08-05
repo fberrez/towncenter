@@ -14,6 +14,7 @@ import {
 import { TerritoryMap, type NafOption } from "@/components/map/TerritoryMap";
 import { requireUser } from "@/lib/accounts";
 import { DEFAULT_FRAME, frameToText, textToFrame } from "@/components/map/frame";
+import { unionBbox } from "@/lib/geo";
 import {
   SIRENE_EXTRA_NAF,
   SIRENE_MAX_PER_PAGE,
@@ -46,7 +47,16 @@ export default async function Page(props: PageProps<"/">) {
 
   const params = await props.searchParams;
 
-  const frame = textToFrame(first(params.frame)) ?? DEFAULT_FRAME;
+  const requestedFrame = textToFrame(first(params.frame));
+
+  // With no frame in the URL — a bare `/` visit — the default view should be
+  // the user's own territory, not a hardcoded city; that needs the sector
+  // list before `frame` is known, so it's fetched ahead of the rest here.
+  const earlySectors = requestedFrame ? null : await listZones(owner, 24);
+  const frame =
+    requestedFrame ??
+    (earlySectors ? unionBbox(earlySectors.map((sector) => sector.bbox)) : null) ??
+    DEFAULT_FRAME;
   const frameText = frameToText(frame);
 
   const requestedTarget = first(params.target);
@@ -59,7 +69,7 @@ export default async function Page(props: PageProps<"/">) {
     await Promise.all([
       listTargetsInBbox(owner, frame),
       getZoneStats(owner, frame),
-      listZones(owner, 24),
+      earlySectors ? Promise.resolve(earlySectors) : listZones(owner, 24),
       listFront(owner, 5),
       getProgression(owner),
       targetId ? getTargetDetail(owner, targetId) : Promise.resolve(null),
