@@ -1106,7 +1106,9 @@ export function TerritoryMap({
           name: sectorNameRef.current.trim() || "Unnamed sector",
         });
         setSurveyLoop(true);
-        surveyRef.current(startSurveyRef.current(bbox, sectorNameRef.current));
+        startTransition(() => {
+          surveyRef.current(startSurveyRef.current(bbox, sectorNameRef.current));
+        });
       };
 
       live.on("mousedown", (event: MapMouseEvent) => {
