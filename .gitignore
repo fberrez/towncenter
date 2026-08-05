@@ -20,4 +20,4 @@ next-env.d.ts
 /data/
 
 # Agent worktrees: whole nested checkouts of this same repository.
-.claude/worktrees/
+.agents/worktrees/

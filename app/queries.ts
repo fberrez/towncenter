@@ -1003,7 +1003,7 @@ function seasonWindow(now: Date = new Date()): SeasonWindow {
 export async function getProgression(owner: Account): Promise<Progression> {
   const now = new Date();
 
-  const [totals, streakRows, outcomeCount, grid] =
+  const [totals, streakRows, outcomeCount, _grid] =
     await Promise.all([
     db
       .select({

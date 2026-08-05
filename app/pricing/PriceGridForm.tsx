@@ -7,7 +7,7 @@
 
 import { useActionState } from "react";
 
-import { Button, Tag, Panel } from "@/components/ui";
+import { Button, Panel } from "@/components/ui";
 import { Field } from "@/components/gate/Field";
 import type { PriceGrid, PriceOffer } from "@/lib/types";
 

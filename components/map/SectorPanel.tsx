@@ -164,7 +164,7 @@ export function SectorPanel({
           {sectors.map((sector) => {
             const here = sameFrame(sector.bbox, currentFrame);
             const hasBeenSurveyed = sector.surveyed > 0;
-            const isRenaming = renaming === sector.id;
+            const _isRenaming = renaming === sector.id;
 
             return (
               <li key={sector.id}>

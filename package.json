@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "node scripts/migrate.mjs && next start",
+    "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
@@ -16,7 +17,8 @@
     "verify:scoring": "tsx scripts/verify-scoring.mts",
     "verify:game": "tsx scripts/verify-game.mts",
     "verify:tenancy": "node --conditions=react-server --import tsx --import ./scripts/bench-gate.mjs scripts/verify-tenancy.mts",
-    "verify:actions": "node --conditions=react-server --import tsx --import ./scripts/bench-gate.mjs scripts/verify-actions.mts"
+    "verify:actions": "node --conditions=react-server --import tsx --import ./scripts/bench-gate.mjs scripts/verify-actions.mts",
+    "prepare": "husky"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -30,11 +32,16 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.19.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.0",
+    "husky": "^9.1.7",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
