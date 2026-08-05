@@ -47,9 +47,11 @@ npm run build
 ```
 
 `lint`, `typecheck`, `verify` and `build` must all be green before a pull
-request; CI runs exactly those against a real Postgres. `verify:tenancy` runs on a
-real database on purpose — a stub client returning empty arrays would pass
-every assertion.
+request. **CI only enforces the first one**: `.github/workflows/pull-request.yml`
+runs `npm run lint` and holds the commits and the title to Conventional
+Commits — `typecheck`, `verify` and `build` are yours to run locally until they
+are wired in. `verify:tenancy` runs on a real database on purpose — a stub
+client returning empty arrays would pass every assertion.
 
 Two rules about the benches:
 
