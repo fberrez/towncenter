@@ -55,11 +55,17 @@ export class PlacesError extends Error {
   }
 }
 
+// read AT CALL TIME: a value read on module load freezes at build.
+export function envPlacesKey(): string | null {
+  const raw = process.env.GOOGLE_PLACES_API_KEY?.trim() ?? "";
+  return raw === "" ? null : raw;
+}
+
 // `websiteUri` from Places is the product's only source of website addresses,
 // so both enrichment actions refuse to run without a key. Harvest, directors,
 // geocoding, map and scoring do not need one.
 export function isPlacesConfigured(): boolean {
-  return Boolean(process.env.GOOGLE_PLACES_API_KEY);
+  return envPlacesKey() !== null;
 }
 
 export function googleDataAgeDays(
@@ -100,6 +106,8 @@ export type PlaceLookupOptions = {
   attempts?: number;
   /** Lowering this threshold means accepting the neighbour. */
   minConfidence?: number;
+  /** The caller's key; the environment's when absent. */
+  key?: string | null;
 };
 
 // implemented in `@/lib/geo`, which must stay importable without this client.
@@ -178,7 +186,8 @@ export async function findPlaceFor(
   input: PlaceLookupInput,
   options: PlaceLookupOptions = {},
 ): Promise<GooglePlaceMatch | null> {
-  if (!isPlacesConfigured()) return null;
+  const key = options.key ?? envPlacesKey();
+  if (!key) return null;
   if (!Number.isFinite(input.lat) || !Number.isFinite(input.lng)) return null;
 
   const query = textQueryFor(input);
@@ -190,7 +199,7 @@ export async function findPlaceFor(
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      payload = await searchTextOnce(query, input, options.timeoutMs);
+      payload = await searchTextOnce(query, input, options.timeoutMs, key);
       break;
     } catch (error) {
       if (!(error instanceof PlacesError) || !error.retryable) throw error;
@@ -275,15 +284,8 @@ async function searchTextOnce(
   textQuery: string,
   input: PlaceLookupInput,
   timeoutMs: number | undefined,
+  key: string,
 ): Promise<SearchTextResponse> {
-  const key = process.env.GOOGLE_PLACES_API_KEY;
-  if (!key) {
-    throw new PlacesError(
-      "No Google Places API key configured. Set GOOGLE_PLACES_API_KEY.",
-      false,
-    );
-  }
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs ?? 10_000);
 
@@ -375,4 +377,22 @@ function errorFor(status: number, detail: string): PlacesError {
     `Google Places answered ${status}.`,
     status >= 500 || googleStatus === "UNAVAILABLE" || googleStatus === "INTERNAL",
   );
+}
+
+// one billed request, the cheapest honest proof that a key works before it is saved
+export async function checkPlacesKey(
+  key: string,
+): Promise<{ ok: true; message: null } | { ok: false; message: string }> {
+  try {
+    await searchTextOnce(
+      "mairie",
+      { name: "mairie", lat: 48.8566, lng: 2.3522 },
+      10_000,
+      key,
+    );
+    return { ok: true, message: null };
+  } catch (error) {
+    if (error instanceof PlacesError) return { ok: false, message: error.message };
+    return { ok: false, message: "Google did not answer." };
+  }
 }

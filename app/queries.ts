@@ -25,6 +25,7 @@ import {
   LEDGER_ORDER_DESC,
   priceGrids,
   targets,
+  users,
   zones,
   type Target,
 } from "@/lib/db";
@@ -52,7 +53,12 @@ import {
 import { ensureGoogleRetention } from "@/lib/retention";
 import { DEFAULT_PRICE_GRID, readPriceGrid } from "@/lib/priceGrid";
 import { scorePlace } from "@/lib/scoring";
-import { isGoogleDataStale } from "@/lib/sources/places";
+import {
+  getAccountPlacesKey,
+  maskKey,
+  type PlacesKeySource,
+} from "@/lib/settings";
+import { envPlacesKey, isGoogleDataStale } from "@/lib/sources/places";
 import {
   CALIBRATION_MIN_OUTCOMES,
   type Bbox,
@@ -489,6 +495,58 @@ export async function getPriceGrid(owner: Account): Promise<PriceGrid> {
     .limit(1);
 
   return row ? readPriceGrid(row.grid) : DEFAULT_PRICE_GRID;
+}
+
+export async function hasCustomPriceGrid(owner: Account): Promise<boolean> {
+  const [row] = await db
+    .select({ ownerId: priceGrids.ownerId })
+    .from(priceGrids)
+    .where(eq(priceGrids.ownerId, owner.id))
+    .limit(1);
+
+  return Boolean(row);
+}
+
+export async function countZones(owner: Account): Promise<number> {
+  const [row] = await db
+    .select({ total: sql<number>`count(*)` })
+    .from(zones)
+    .where(eq(zones.ownerId, owner.id));
+
+  return Number(row?.total ?? 0);
+}
+
+// what the setup screen shows: facts only, each backed by a row or the environment
+export type OnboardingFacts = {
+  onboardedAt: string | null;
+  placesKeySource: PlacesKeySource;
+  placesKeyMask: string | null;
+  hasCustomGrid: boolean;
+  sectorCount: number;
+};
+
+export async function getOnboardingFacts(
+  owner: Account,
+): Promise<OnboardingFacts> {
+  const [userRow] = await db
+    .select({ onboardedAt: users.onboardedAt })
+    .from(users)
+    .where(eq(users.id, owner.id))
+    .limit(1);
+
+  const [key, hasCustomGrid, sectorCount] = await Promise.all([
+    getAccountPlacesKey(owner.id),
+    hasCustomPriceGrid(owner),
+    countZones(owner),
+  ]);
+
+  return {
+    onboardedAt: userRow?.onboardedAt?.toISOString() ?? null,
+    placesKeySource: key ? "account" : envPlacesKey() ? "env" : null,
+    placesKeyMask: key ? maskKey(key) : null,
+    hasCustomGrid,
+    sectorCount,
+  };
 }
 
 export type Banked = {

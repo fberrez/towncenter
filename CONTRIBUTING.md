@@ -17,7 +17,7 @@ becomes a project that holds its documents** — quote, mockup, deliverables —
 a hosted instance is the longer-term ambition. Self-hosting stays a first-class
 path under AGPL, permanently.
 
-**None of that layer exists yet.** Five tables, zero uploaded bytes. If you are
+**None of that layer exists yet.** Six tables, zero uploaded bytes. If you are
 looking for somewhere to start, that is the open ground — but read the scope
 section of the README first, because two boundaries hold regardless: it is still
 not a CRM, and the map is not allowed to become one view among several.

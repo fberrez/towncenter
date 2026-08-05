@@ -1,0 +1,323 @@
+/* The setup screen. Reuses the gate's aesthetic: a paper column on the left,
+   a drawn world map on the right. Two elements: .frame MEASURES, .gate REACTS. */
+
+.frame {
+  min-height: 100dvh;
+  background: var(--bg);
+  container-type: inline-size;
+  container-name: onboarding;
+}
+
+.gate {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.plan {
+  display: none;
+}
+
+@container onboarding (min-width: 900px) {
+  .gate {
+    grid-template-columns: minmax(420px, 42%) 1fr;
+  }
+
+  .plan {
+    display: block;
+  }
+}
+
+.column {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 32px;
+  padding: 32px;
+  background: var(--paper);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.brandMark {
+  width: auto;
+  height: 44px;
+}
+
+.center {
+  display: grid;
+  align-content: start;
+  justify-items: stretch;
+  width: min(420px, 100%);
+  margin: 0 auto;
+  gap: 24px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--typeface-serif);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text-1);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+/* The checklist rail: numbered items with hairline connectors. */
+
+.rail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.railItem {
+  position: relative;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-1);
+}
+
+.railItem:last-child {
+  border-bottom: none;
+}
+
+.railLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text-2);
+  transition: color 0.2s ease;
+}
+
+.railLink:hover {
+  color: var(--text-1);
+}
+
+.railLink[aria-current="step"] {
+  color: var(--text-1);
+}
+
+.railNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border-2);
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes checkmarkPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.railItem[data-done] .railNumber {
+  border-color: var(--success);
+  color: var(--success);
+  animation: checkmarkPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes currentPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--accent-veil);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+.railItem[data-current] .railNumber {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-veil);
+  animation: currentPulse 2s ease-in-out infinite;
+}
+
+.railLabel {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.railItem[data-done] .railLabel {
+  color: var(--text-3);
+}
+
+/* The step content area. */
+
+@keyframes stepEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stepContent {
+  display: grid;
+  gap: 16px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border-1);
+  animation: stepEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stepActions {
+  display: grid;
+  gap: 12px;
+}
+
+.stepLink {
+  color: var(--accent-text);
+  font-weight: 500;
+  text-underline-offset: 3px;
+  font-size: 14px;
+  transition: opacity 0.2s ease;
+}
+
+.stepLink:hover {
+  opacity: 0.8;
+}
+
+/* The key form. */
+
+.keyForm {
+  display: grid;
+  gap: 12px;
+}
+
+.keyLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-1);
+}
+
+.keyInput {
+  padding: 10px 12px;
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  background: var(--surface-1);
+  font-size: 14px;
+  font-family: var(--typeface-mono);
+  color: var(--text-1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.keyInput:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+
+.keyInput[aria-invalid="true"] {
+  border-color: var(--failure);
+}
+
+.fieldError {
+  margin: 0;
+  font-size: 13px;
+  color: var(--failure-text);
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  animation: messageSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.message[data-status="success"] {
+  border: 1px solid color-mix(in srgb, var(--success) 32%, transparent);
+  background: color-mix(in srgb, var(--success) 7%, transparent);
+  color: var(--success-text);
+}
+
+.message[data-status="error"] {
+  border: 1px solid color-mix(in srgb, var(--failure) 32%, transparent);
+  background: color-mix(in srgb, var(--failure) 7%, transparent);
+  color: var(--failure-text);
+}
+
+.keyActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.removeForm {
+  margin: 0;
+}
+
+.footerRule {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.planFrame {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-left: 1px solid var(--border-1);
+  background: var(--surface-2);
+}
+
+/* Respect prefers-reduced-motion for accessibility. */
+@media (prefers-reduced-motion: reduce) {
+  .stepContent,
+  .railItem[data-done] .railNumber,
+  .railItem[data-current] .railNumber,
+  .message {
+    animation: none;
+  }
+
+  .railNumber {
+    transition: none;
+  }
+}

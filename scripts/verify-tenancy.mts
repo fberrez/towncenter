@@ -14,6 +14,7 @@
 import { eq, sql } from "drizzle-orm";
 
 import {
+  getOnboardingFacts,
   getSeasonReport,
   getBankedTotalCents,
   getPriceGrid,
@@ -29,7 +30,15 @@ import {
 } from "@/app/queries";
 import type { Account } from "@/lib/accounts";
 import { createAccount, verifyCredentials } from "@/lib/accounts";
-import { db, events, priceGrids, targets, users, zones } from "@/lib/db";
+import {
+  accountSettings,
+  db,
+  events,
+  priceGrids,
+  targets,
+  users,
+  zones,
+} from "@/lib/db";
 import { DEFAULT_PRICE_GRID } from "@/lib/priceGrid";
 import type { Bbox, PriceGrid } from "@/lib/types";
 
@@ -437,6 +446,32 @@ async function main() {
       "the displayed price follows the target owner's grid",
       bobPrice > alicePrice,
       `bob ${bobPrice} c > alice ${alicePrice} c`,
+    );
+  }
+
+  // Account settings: one row per account, and a missing row is the normal state.
+
+  {
+    await db
+      .insert(accountSettings)
+      .values({ ownerId: bob.id, googlePlacesKey: "AIzaSyB-bob-secret" })
+      .onConflictDoUpdate({
+        target: accountSettings.ownerId,
+        set: { googlePlacesKey: "AIzaSyB-bob-secret" },
+      });
+
+    const bobFacts = await getOnboardingFacts(bob);
+    const aliceFacts = await getOnboardingFacts(alice);
+
+    check(
+      "the key saved by an account is the one it reads back",
+      bobFacts.placesKeySource === "account" && bobFacts.placesKeyMask !== null,
+      `bob source ${bobFacts.placesKeySource}`,
+    );
+    check(
+      "an account with no key does NOT pick up another's",
+      aliceFacts.placesKeySource === null && aliceFacts.placesKeyMask === null,
+      `alice source ${aliceFacts.placesKeySource}`,
     );
   }
 

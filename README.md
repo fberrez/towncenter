@@ -66,7 +66,7 @@ Gitea, Vaultwarden and Plausible.
 |---|---|---|
 | `AUTH_SECRET` | yes | Signs session tokens. 32 characters minimum. Changing it logs everyone out. |
 | `DATABASE_URL` | yes | Postgres 14+. The value in `.env.example` matches the bundled `docker-compose.yml`. |
-| `GOOGLE_PLACES_API_KEY` | for enrichment | Places API (New). Server-side only, never reaches the browser. |
+| `GOOGLE_PLACES_API_KEY` | for enrichment | Places API (New). Server-side only, never reaches the browser. Can also be entered on the Setup screen (per-account, wins over the environment). |
 | `ALLOW_SIGNUPS` | no | Reopens signups once the first account exists. Absent: only the first signup is possible. |
 
 Full descriptions are in [`.env.example`](.env.example). No secret is ever
@@ -180,8 +180,8 @@ the same job; splitting them across two tools means typing the same client
 twice.
 
 > [!NOTE]
-> **None of that is built.** As of 2026-08-04 this repository has five tables —
-> `users`, `targets`, `zones`, `events`, `price_grids` — and stores **zero
+> **None of that is built.** As of 2026-08-04 this repository has six tables —
+> `users`, `targets`, `zones`, `events`, `price_grids`, `account_settings` — and stores **zero
 > uploaded bytes**: no object storage, no blob column, no multipart handler.
 > This section describes a direction, not a feature you can use.
 >

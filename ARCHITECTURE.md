@@ -47,8 +47,8 @@ Postgres.
 > not urgent." Do not reinstate it believing you are correcting a scope drift:
 > it is a decision, and it is dated.
 
-**None of that layer is built.** Five tables — `users`, `targets`, `zones`,
-`events`, `price_grids` — and **zero stored bytes**: no object storage, no blob
+**None of that layer is built.** Six tables — `users`, `targets`, `zones`,
+`events`, `price_grids`, `account_settings` — and **zero stored bytes**: no object storage, no blob
 column, no multipart handler. The rule against a counter with no fact behind it
 applies to what we write *about* the product too: until a table exists, the docs
 say "to be built", not "coming soon". The day it ships, the mention goes and the
@@ -86,7 +86,7 @@ under `scripts/`.
 | `lib/game.ts` | Ranks, rarity, XP, levels, streaks, seasons |
 | `lib/priceGrid.ts` | `DEFAULT_PRICE_GRID` and its validation schema |
 | `lib/sources/` | SIRENE, IGN geocoder, Google Places, in-repo site audit |
-| `lib/db/schema.ts` | The five tables and their indexes |
+| `lib/db/schema.ts` | The six tables and their indexes |
 | `scripts/verify-*.mts` | The benches |
 
 ---
@@ -225,7 +225,7 @@ above findings about the old one.
 
 ## Data model, database and tenancy
 
-Five tables: `users`, `targets`, `zones`, `events`, `price_grids`.
+Six tables: `users`, `targets`, `zones`, `events`, `price_grids`, `account_settings`.
 
 **`rowid` does not exist in Postgres.** Two reads relied on it to break ties
 between two facts written in the same second. Without a tiebreak, "roll back"

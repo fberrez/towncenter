@@ -196,7 +196,7 @@ export async function signUpAction(
   }
 
   await createSession(result.account.id);
-  redirect("/");
+  redirect("/onboarding");
 }
 
 export async function signOutAction(): Promise<void> {
