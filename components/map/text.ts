@@ -52,42 +52,42 @@ export function yearsSince(
 // labels are visible text.
 
 export const STATE_LABEL: Record<TargetState, string> = {
-  spotted: "Spotted",
-  studied: "Studied",
-  engaged: "Engaged",
-  taken: "Taken",
-  withdrawn: "Withdrawn",
-  dismissed: "Set aside",
+  spotted: "Repérée",
+  studied: "Analysée",
+  engaged: "Contactée",
+  taken: "Signée",
+  withdrawn: "Abandonnée",
+  dismissed: "Mise de côté",
 };
 
 export const APPROACH: readonly { state: TargetState; label: string }[] = [
-  { state: "spotted", label: "Spotted" },
-  { state: "studied", label: "Studied" },
-  { state: "engaged", label: "Engaged" },
-  { state: "taken", label: "Taken" },
+  { state: "spotted", label: "Repérée" },
+  { state: "studied", label: "Analysée" },
+  { state: "engaged", label: "Contactée" },
+  { state: "taken", label: "Signée" },
 ];
 
 export const EVENT_LABEL: Record<EventKind, string> = {
-  survey: "Spotted",
-  study: "Study",
-  contact: "Call",
-  reply: "Reply",
-  take: "Taken",
-  withdrawal: "Withdrawn",
+  survey: "Repérée",
+  study: "Analyse",
+  contact: "Appel",
+  reply: "Réponse",
+  take: "Signée",
+  withdrawal: "Abandonnée",
 };
 
 export const ADVANCE_VERB: Record<"studied" | "engaged" | "taken" | "withdrawn", string> =
   {
-    studied: "Mark as studied",
-    engaged: "Mark as engaged",
-    taken: "Take it",
-    withdrawn: "Withdraw",
+    studied: "Marquer comme analysée",
+    engaged: "Marquer comme contactée",
+    taken: "Signer",
+    withdrawn: "Abandonner",
   };
 
 export const STEP_VERB: Record<"studied" | "engaged" | "taken", string> = {
-  studied: "Study",
-  engaged: "Call",
-  taken: "Sign",
+  studied: "Analyser",
+  engaged: "Appeler",
+  taken: "Signer",
 };
 
 // dates a step from the log; inverse of STATE_FOR_EVENT on the server side,
@@ -102,10 +102,10 @@ export const STEP_EVENT: Record<TargetState, EventKind | null> = {
 };
 
 export const PROXIMITY_LABEL: Record<string, string> = {
-  "same-street-capture": "Same street as a deal we took",
-  "near-live-deal": "Within 300 m of a live deal",
-  "in-zone": "No reference nearby",
-  "outside-zone": "Outside the worked sectors",
+  "same-street-capture": "Même rue qu’une affaire signée",
+  "near-live-deal": "À moins de 300 m d’une affaire active",
+  "in-zone": "Aucune référence à proximité",
+  "outside-zone": "Hors des secteurs travaillés",
 };
 
 export function plural(n: number, singular: string, pluralForm: string): string {

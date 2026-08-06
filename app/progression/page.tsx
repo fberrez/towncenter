@@ -37,7 +37,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Progress · Towncenter",
+  title: "Progression · Towncenter",
 };
 
 // The reads are written around a frame because the map drives them. There is no
@@ -62,12 +62,12 @@ const MONTHS_SHOWN = 12;
 
 /** Visible text. No superlative, no icon. */
 const EVENT_LABEL_SHORT: Record<EventKind, string> = {
-  survey: "Spotted",
-  study: "Study",
+  survey: "Repérée",
+  study: "Étude",
   contact: "Contact",
-  reply: "Reply",
-  take: "Taken",
-  withdrawal: "Withdrawn",
+  reply: "Réponse",
+  take: "Signée",
+  withdrawal: "Abandonnée",
 };
 
 /**
@@ -139,11 +139,11 @@ export default async function ProgressionPage() {
 
       <main className={styles.page}>
         <header className={styles.page__head}>
-          <h1 className={`t-title-1 ${styles.page__title}`}>The progress</h1>
+          <h1 className={`t-title-1 ${styles.page__title}`}>La progression</h1>
           <p className={`t-body-s ${styles.page__season}`}>
-            Season · {progression.season.daysLeft} day
-            {progression.season.daysLeft > 1 ? "s" : ""} left · from{" "}
-            {shortDate(progression.season.startsAt)} to{" "}
+            Saison · {progression.season.daysLeft} jour
+            {progression.season.daysLeft > 1 ? "s" : ""} restant{progression.season.daysLeft > 1 ? "s" : ""} · du {" "}
+            {shortDate(progression.season.startsAt)} au {" "}
             {shortDate(progression.season.endsAt)}
           </p>
         </header>
@@ -154,21 +154,21 @@ export default async function ProgressionPage() {
               <Loot
                 cents={seasonReport.capturedCents}
                 size="hero"
-                label="Taken this season"
+                label="Signé cette saison"
                 recurringCents={
                   seasonReport.recurringEstimatedCents > 0 ? seasonReport.recurringEstimatedCents : null
                 }
               />
               <p className={`t-body-s tnum ${styles.tile__extra}`}>
-                {seasonReport.capturesCount} taken · {seasonReport.withdrawalsCount} withdrawn
-                {seasonReport.recurringEstimatedCents > 0 ? " · recurring estimated, not signed" : ""}
+                {seasonReport.capturesCount} signé{seasonReport.capturesCount > 1 ? "s" : ""} · {seasonReport.withdrawalsCount} abandonné{seasonReport.withdrawalsCount > 1 ? "s" : ""}
+                {seasonReport.recurringEstimatedCents > 0 ? " · récurrent estimé, non signé" : ""}
               </p>
               {seasonReport.capturesCount === 0 ? (
                 /* The zero is shown as-is, followed by a fact. No encouragement,
                    no tile that disappears. */
                 <p className={`t-body-s ${styles.empty}`}>
-                  No take this season. {seasonReport.inPlayCount} business
-                  {seasonReport.inPlayCount > 1 ? "es" : ""} still in play.
+                  Aucune signature cette saison. {seasonReport.inPlayCount} entreprise
+                  {seasonReport.inPlayCount > 1 ? "s" : ""} encore en jeu.
                 </p>
               ) : null}
             </Card>
@@ -179,19 +179,19 @@ export default async function ProgressionPage() {
               <Loot
                 cents={seasonReport.inPlayCents}
                 size="hero"
-                label="Still in play"
+                label="Encore en jeu"
                 ton="neutral"
               />
               <p className={`t-body-s tnum ${styles.tile__extra}`}>
-                estimated over {seasonReport.inPlayCount} business
-                {seasonReport.inPlayCount > 1 ? "es" : ""}
+                estimation sur {seasonReport.inPlayCount} entreprise
+                {seasonReport.inPlayCount > 1 ? "s" : ""}
                 {averageOdds === null
                   ? ""
-                  : ` · average odds ${percent(averageOdds)}`}
+                  : ` · probabilité moyenne ${percent(averageOdds)}`}
               </p>
               {seasonReport.truncated ? (
                 <p className={`t-body-s ${styles.empty}`}>
-                  The read ceiling cut in: this total is a floor.
+                  La limite de lecture a été atteinte : ce total est un minimum.
                 </p>
               ) : null}
             </Card>
@@ -206,26 +206,26 @@ export default async function ProgressionPage() {
               <LevelCard level={progression.level} />
               <p className={`t-body-s tnum ${styles.tile__extra}`}>
                 {progression.eventCount} fact
-                {progression.eventCount > 1 ? "s" : ""} logged
+                {progression.eventCount > 1 ? "s" : ""} consigné{progression.eventCount > 1 ? "s" : ""}
                 {" · "}
-                progress is frozen at the moment of the fact, never recomputed
+                la progression est figée au moment du fait, jamais recalculée
               </p>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>The season</CardTitle>
+                <CardTitle>La saison</CardTitle>
               </CardHeader>
               <Gauge
                 value={seasonAdvance}
-                name="Elapsed"
+                name="Écoulée"
                 valueText={`${SEASON_DAYS - progression.season.daysLeft} / ${SEASON_DAYS} j`}
                 tint="var(--text-1)"
               />
               <p className={`t-body-s ${styles.tile__extra}`}>
-                Thirty rolling days. It bounds the effort and resets the counter: a bad
-                month does not weigh forever. There is no leaderboard and no opponent —
-                the only ranking in the product is the one of sectors, below.
+                Trente jours glissants. Cette durée limite l’effort et remet le compteur à
+                zéro : un mauvais mois ne pèse pas pour toujours. Il n’y a ni classement
+                général ni adversaire — le seul classement du produit est celui des secteurs, ci-dessous.
               </p>
             </Card>
           </div>
@@ -235,89 +235,89 @@ export default async function ProgressionPage() {
             against what actually happened. Do not remove it or soften it. */}
         <Card>
           <CardHeader>
-            <CardTitle>The model’s honesty</CardTitle>
+            <CardTitle>L’honnêteté du modèle</CardTitle>
           </CardHeader>
           <div className={styles.honesty}>
             <p className={`t-body ${styles.section__intro}`}>
-              What the model announces, set against what actually happened. Two
-              measures, and they do not say the same thing: PRICE compares in euros on
-              the businesses taken, ODDS compare as rates, band by band.
+              Ce que le modèle annonce, comparé à ce qui s’est réellement produit. Deux
+              mesures qui ne disent pas la même chose : le PRIX compare les euros des
+              entreprises signées, les PROBABILITÉS comparent les taux, tranche par tranche.
             </p>
 
             <div className={styles.honesty__count}>
               <p className={`t-title-3 ${styles.honesty__verdict}`}>
                 {met.calibrated
-                  ? `Calibrated on ${met.issues} known outcomes.`
-                  : `Not calibrated yet, n = ${met.issues}.`}
+                  ? `Étalonné sur ${met.issues} résultats connus.`
+                  : `Pas encore étalonné, n = ${met.issues}.`}
               </p>
               <Gauge
                 value={met.issues / CALIBRATION_MIN_OUTCOMES}
-                name="Known outcomes"
+                name="Résultats connus"
                 valueText={`${met.issues} / ${CALIBRATION_MIN_OUTCOMES}`}
                 tint="var(--text-1)"
               />
               <p className="t-body-s tone-2 tnum">
-                {met.captures} taken · {met.withdrawals} withdrawn
+                {met.captures} signé{met.captures > 1 ? "s" : ""} · {met.withdrawals} abandonné{met.withdrawals > 1 ? "s" : ""}
                 {met.missing > 0
-                  ? ` · ${met.missing} more before these figures mean anything`
+                  ? ` · encore ${met.missing} avant que ces chiffres aient un sens`
                   : ""}
               </p>
             </div>
 
             <div>
-              <Badge asChild><h3>Announced price against signed price</h3></Badge>
+              <Badge asChild><h3>Prix annoncé face au prix signé</h3></Badge>
               <div className={styles.honesty__gap}>
                 <Loot
                   cents={met.comparable > 0 ? met.promisedCents : null}
                   size="title"
-                  label="Announced by the grid"
+                  label="Annoncé par la grille"
                   ton="neutral"
-                  reason={met.comparable > 0 ? null : "no comparable take"}
+                  reason={met.comparable > 0 ? null : "aucune signature comparable"}
                 />
                 <Loot
                   cents={met.comparable > 0 ? met.deliveredCents : null}
                   size="title"
-                  label="Actually signed"
+                  label="Réellement signé"
                   reason={null}
                 />
                 <div>
-                  <Badge>Held</Badge>
+                  <Badge>Respecté</Badge>
                   <p className={`t-title-1 tnum ${styles["honesty__gap-value"]}`}>
                     {met.met === null ? "—" : percent(met.met * 100)}
                   </p>
                 </div>
               </div>
               <p className="t-body-s tone-2 tnum">
-                Over {met.comparable} priced take
-                {met.comparable > 1 ? "s" : ""}. The logged amount is the one-off
-                take, so it is compared against the grid price, never against the
-                twelve-month value.
+                Sur {met.comparable} signature tarifée
+                {met.comparable > 1 ? "s" : ""}. Le montant consigné est celui de la
+                signature ponctuelle : il est donc comparé au prix de la grille, jamais à
+                la valeur sur douze mois.
               </p>
             </div>
 
             <div>
               <Badge asChild>
                 <h3>
-                  Announced odds against the rate actually observed
+                  Probabilité annoncée face au taux réellement observé
                 </h3>
               </Badge>
               <table className={`${styles.table} t-body-s`}>
                 <thead>
                   <tr>
                     <th className={styles.table__name} scope="col">
-                      Announced odds
+                      Probabilité annoncée
                     </th>
                     <th className={styles.table__number} scope="col">
-                      Outcomes
+                      Résultats
                     </th>
                     <th className={styles.table__number} scope="col">
-                      Taken
+                      Signées
                     </th>
                     <th className={styles.table__number} scope="col">
-                      Announced
+                      Annoncée
                     </th>
                     <th className={styles.table__number} scope="col">
-                      Actual
+                      Réelle
                     </th>
                   </tr>
                 </thead>
@@ -325,16 +325,16 @@ export default async function ProgressionPage() {
                   {met.bands.map((band) => (
                     <tr key={band.key} data-empty={band.issues === 0 ? "yes" : "no"}>
                       <td className={styles.table__name}>{band.label}</td>
-                      <td className={styles.table__number} data-label="Outcomes">
+                      <td className={styles.table__number} data-label="Résultats">
                         {band.issues}
                       </td>
-                      <td className={styles.table__number} data-label="Taken">
+                      <td className={styles.table__number} data-label="Signées">
                         {band.captures}
                       </td>
-                      <td className={styles.table__number} data-label="Announced">
+                      <td className={styles.table__number} data-label="Annoncée">
                         {band.announced === null ? "—" : percent(band.announced)}
                       </td>
-                      <td className={styles.table__number} data-label="Actual">
+                      <td className={styles.table__number} data-label="Réelle">
                         {band.actual === null ? "—" : percent(band.actual)}
                       </td>
                     </tr>
@@ -342,21 +342,21 @@ export default async function ProgressionPage() {
                 </tbody>
               </table>
               <p className={`t-body-s ${styles.table__note}`}>
-                An honest model brings the last two columns together, row by row. An
-                empty band shows “—” and is counted nowhere: an absence is not a zero.
+                Un modèle honnête rapproche les deux dernières colonnes, ligne par ligne.
+                Une tranche vide affiche « — » et n’est comptée nulle part : une absence n’est pas un zéro.
               </p>
             </div>
 
             <div>
-              <Badge asChild><h3>What this page does not prove yet</h3></Badge>
+              <Badge asChild><h3>Ce que cette page ne démontre pas encore</h3></Badge>
               <ul className={`t-body-s ${styles.honesty__caveats}`}>
                 {caveats(met).map((row) => (
                   <li key={row}>{row}</li>
                 ))}
                 {issues.truncated ? (
                   <li>
-                    The read ceiling cut in: there are more outcomes than the ones
-                    counted here.
+                    La limite de lecture a été atteinte : il existe davantage de résultats
+                    que ceux comptés ici.
                   </li>
                 ) : null}
               </ul>
@@ -366,14 +366,14 @@ export default async function ProgressionPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>The sectors</CardTitle>
+            <CardTitle>Les secteurs</CardTitle>
             <CardAction>
-              <span className="t-body-s tone-2">sorted by spoils taken</span>
+              <span className="t-body-s tone-2">triés par butin signé</span>
             </CardAction>
           </CardHeader>
           {sectors.length === 0 ? (
             <p className={`t-body ${styles.empty}`}>
-              No sector surveyed. The map is waiting for a first outline.
+              Aucun secteur relevé. La carte attend son premier tracé.
             </p>
           ) : (
             <>
@@ -381,22 +381,22 @@ export default async function ProgressionPage() {
                 <thead>
                   <tr>
                     <th className={styles.table__name} scope="col">
-                      Sector
+                      Secteur
                     </th>
                     <th className={styles.table__number} scope="col">
-                      Surveyed
+                      Relevé
                     </th>
                     <th className={styles.table__number} scope="col">
-                      Approached
+                      Approchée
                     </th>
                     <th className={styles.table__number} scope="col">
-                      Taken
+                      Signée
                     </th>
                     <th className={styles.table__number} scope="col">
-                      Hold
+                      Emprise
                     </th>
                     <th className={styles.table__gold} scope="col">
-                      Spoils taken
+                      Butin signé
                     </th>
                   </tr>
                 </thead>
@@ -404,23 +404,23 @@ export default async function ProgressionPage() {
                   {sectors.map((zone) => (
                     <tr key={zone.id} data-empty={zone.surveyed === 0 ? "yes" : "no"}>
                       <td className={styles.table__name} title={zone.label ?? undefined}>
-                        {zone.label ?? "Unnamed sector"}
-                        {zone.status === "failed" ? " · survey failed" : ""}
-                        {zone.status === "running" ? " · survey running" : ""}
+                        {zone.label ?? "Secteur sans nom"}
+                        {zone.status === "failed" ? " · relevé échoué" : ""}
+                        {zone.status === "running" ? " · relevé en cours" : ""}
                       </td>
-                      <td className={styles.table__number} data-label="Surveyed">
+                      <td className={styles.table__number} data-label="Relevé">
                         {zone.surveyed}
                       </td>
-                      <td className={styles.table__number} data-label="Approached">
+                      <td className={styles.table__number} data-label="Approchée">
                         {zone.approached}
                       </td>
-                      <td className={styles.table__number} data-label="Taken">
+                      <td className={styles.table__number} data-label="Signée">
                         {zone.captures}
                       </td>
-                      <td className={styles.table__number} data-label="Hold">
+                      <td className={styles.table__number} data-label="Emprise">
                         {zone.surveyed === 0 ? "—" : percent(zone.hold * 100)}
                       </td>
-                      <td className={styles.table__gold} data-label="Spoils taken">
+                      <td className={styles.table__gold} data-label="Butin signé">
                         {zone.capturedLootCents === 0
                           ? "—"
                           : formatEuros(zone.capturedLootCents, { decimals: "never" })}
@@ -430,10 +430,10 @@ export default async function ProgressionPage() {
                 </tbody>
               </table>
               <p className={`t-body-s ${styles.table__note}`}>
-                The counters are recounted on read, not taken from the survey: a survey
-                says what it returned that day, and the ground moves with every take. A
-                sector that failed stays in the list — that is precisely what you need to
-                know in order to run it again.
+                Les compteurs sont recomptés à la lecture, sans reprendre le relevé : un
+                relevé indique ce qu’il a renvoyé ce jour-là et le terrain évolue à chaque
+                signature. Un secteur en échec reste dans la liste : c’est précisément ce
+                qu’il faut savoir pour le relancer.
               </p>
             </>
           )}
@@ -442,10 +442,10 @@ export default async function ProgressionPage() {
         <div className={`${styles.tiles} ${styles["tiles--two"]}`}>
           <Card>
             <CardHeader>
-              <CardTitle>Rank distribution</CardTitle>
+              <CardTitle>Répartition des rangs</CardTitle>
             </CardHeader>
             {seasonReport.ranks.length === 0 ? (
-              <p className={`t-body ${styles.empty}`}>Nothing in play for now.</p>
+              <p className={`t-body ${styles.empty}`}>Rien en jeu pour le moment.</p>
             ) : (
               <div className={styles.bars}>
                 {seasonReport.ranks.map((part) => (
@@ -456,7 +456,7 @@ export default async function ProgressionPage() {
                     <Gauge
                       value={maxRankCount > 0 ? part.count / maxRankCount : 0}
                       tint="var(--rank-color)"
-                      label={`${part.label}: ${part.count} businesses`}
+                      label={`${part.label} : ${part.count} entreprises`}
                     />
                     <span className={`t-body-s tnum ${styles.bar__value}`}>
                       {part.count}
@@ -466,15 +466,15 @@ export default async function ProgressionPage() {
               </div>
             )}
             <p className={`t-body-s ${styles.table__note}`}>
-              Over what is still in play. Rank follows expected value — what the deal
-              brings in, multiplied by the odds of signing it — and not the quote alone:
-              a large quote you will not sign is not a large take.
+              Sur ce qui est encore en jeu. Le rang suit la valeur attendue — ce que le
+              contrat rapporte, multiplié par la probabilité de le signer — et non le devis
+              seul : un gros devis que vous ne signerez pas n’est pas une grande signature.
             </p>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Spoils signed, month by month</CardTitle>
+              <CardTitle>Butin signé, mois par mois</CardTitle>
             </CardHeader>
             <div className={styles.bars}>
               {months.map((part) => (
@@ -496,19 +496,19 @@ export default async function ProgressionPage() {
               ))}
             </div>
             <p className={`t-body-s ${styles.table__note}`}>
-              Amounts actually signed, never an estimate. Empty months stay on display:
-              removing them would turn two takes in January and two in June into a curve
-              that climbs nicely.
+              Montants réellement signés, jamais une estimation. Les mois vides restent
+              affichés : les retirer transformerait deux signatures en janvier et deux en
+              juin en une courbe joliment ascendante.
             </p>
           </Card>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>The log</CardTitle>
+            <CardTitle>Le journal</CardTitle>
           </CardHeader>
           {log.length === 0 ? (
-            <p className={`t-body ${styles.empty}`}>No fact logged.</p>
+            <p className={`t-body ${styles.empty}`}>Aucun fait consigné.</p>
           ) : (
             <ul className={styles.ledger}>
               {log.map((entry) => (
@@ -533,8 +533,8 @@ export default async function ProgressionPage() {
             </ul>
           )}
           <p className={`t-body-s ${styles.table__note}`}>
-            Plain text, no rank colour, no icon. That is what keeps the log readable
-            cold six months later, including on the bad days.
+            Texte simple, sans couleur de rang ni icône. C’est ce qui garde le journal
+            lisible à froid six mois plus tard, y compris les mauvais jours.
           </p>
         </Card>
       </main>

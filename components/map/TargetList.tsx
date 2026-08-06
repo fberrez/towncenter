@@ -62,7 +62,7 @@ function Row({
           <span className="t-title-3 target-row__name">{target.name}</span>
           {offGrid ? (
             showOffGrid ? (
-              <span className="t-micro target-row__off-grid">Off-grid</span>
+              <span className="t-micro target-row__off-grid">Hors grille</span>
             ) : null
           ) : (
             <span className="t-body-s tnum target-row__loot">
@@ -82,7 +82,7 @@ function Row({
             data-band={band.key}
           >
             {percent(target.resistancePercent)}
-            <span className="sr-only"> resistance, {band.label}</span>
+            <span className="sr-only"> résistance, {band.label}</span>
           </span>
         </span>
       </button>
@@ -111,7 +111,7 @@ export function TargetList({
     return (
       <div className={className}>
         <p className="t-body tone-2">
-          No business in this frame. Draw a sector and run the survey.
+          Aucune entreprise dans ce cadre. Dessinez un secteur et lancez le relevé.
         </p>
       </div>
     );
@@ -153,8 +153,8 @@ export function TargetList({
 
       {rest > 0 ? (
         <p className="t-body-s tone-3 target-list__rest tnum">
-          {rest} more business{rest > 1 ? "es" : ""} in this frame, not shown here.
-          Tighten the view.
+          {rest} entreprise{rest > 1 ? "s" : ""} de plus dans ce cadre ne sont pas affichées.
+          Resserrez la vue.
         </p>
       ) : null}
 

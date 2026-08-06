@@ -75,7 +75,7 @@ export function PlacesKeyForm({ defaultValue }: PlacesKeyFormProps) {
           formAction={testDispatch}
           disabled={testPending || savePending || key.length < 20}
         >
-          {testPending ? "Checking…" : "Check the key"}
+          {testPending ? "Vérification…" : "Vérifier la clé"}
         </Button>
         <Button
           type="submit"
@@ -83,7 +83,7 @@ export function PlacesKeyForm({ defaultValue }: PlacesKeyFormProps) {
           formAction={saveDispatch}
           disabled={savePending || testPending || key.length < 20}
         >
-          {savePending ? "Saving…" : "Save and continue"}
+          {savePending ? "Enregistrement…" : "Enregistrer et continuer"}
         </Button>
       </div>
     </form>

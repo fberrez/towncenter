@@ -53,7 +53,7 @@ export function SignIn() {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="signin-password">Password</FieldLabel>
+          <FieldLabel htmlFor="signin-password">Mot de passe</FieldLabel>
           <InputGroup>
             <InputGroupInput
               id="signin-password"
@@ -67,7 +67,7 @@ export function SignIn() {
             <InputGroupButton
               onClick={() => setVisible((was) => !was)}
               aria-pressed={visible}
-              aria-label={visible ? "Hide password" : "Show password"}
+              aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
             >
               {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
             </InputGroupButton>
@@ -80,7 +80,7 @@ export function SignIn() {
 
       <div style={{ marginTop: "24px" }}>
         <Button type="submit" variant="primary" fullWidth disabled={inProgress}>
-          {inProgress ? "Checking…" : "Enter the field"}
+          {inProgress ? "Vérification…" : "Accéder au terrain"}
         </Button>
       </div>
     </form>

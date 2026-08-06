@@ -22,10 +22,10 @@ import type { PlacesKeyState } from "./state";
 const keySchema = z.object({
   key: z
     .string()
-    .min(20, "A Google Places key is at least 20 characters.")
+    .min(20, "Une clé Google Places contient au moins 20 caractères.")
     .max(2048)
     .refine((v) => !/\s/.test(v), {
-      message: "The key must not contain whitespace.",
+      message: "La clé ne doit pas contenir d’espace.",
     }),
 });
 
@@ -46,7 +46,7 @@ export async function testPlacesKeyAction(
     return {
       status: "error",
       message: null,
-      fieldError: parsed.error.issues[0]?.message ?? "Unreadable key.",
+      fieldError: parsed.error.issues[0]?.message ?? "Clé illisible.",
     };
   }
 
@@ -54,7 +54,7 @@ export async function testPlacesKeyAction(
   if (result.ok) {
     return {
       status: "tested",
-      message: "Key accepted by Google. You can save it.",
+      message: "Clé acceptée par Google. Vous pouvez l’enregistrer.",
       fieldError: null,
     };
   }
@@ -73,7 +73,7 @@ export async function savePlacesKeyAction(
     return {
       status: "error",
       message: null,
-      fieldError: parsed.error.issues[0]?.message ?? "Unreadable key.",
+      fieldError: parsed.error.issues[0]?.message ?? "Clé illisible.",
     };
   }
 

@@ -63,21 +63,21 @@ export function checkPasswordShape(
   if (password.length < PASSWORD_MIN) {
     return {
       key: "short",
-      message: `At least ${PASSWORD_MIN} characters — length is what protects you, not symbols.`,
+      message: `Au moins ${PASSWORD_MIN} caractères : c’est la longueur qui protège, pas les symboles.`,
     };
   }
 
   if (password.length > PASSWORD_MAX) {
     return {
       key: "long",
-      message: `${PASSWORD_MAX} characters at most.`,
+      message: `${PASSWORD_MAX} caractères au maximum.`,
     };
   }
 
   if (TOO_COMMON.has(password.toLowerCase())) {
     return {
       key: "known",
-      message: "This one is in every leaked-password list. Pick another.",
+      message: "Ce mot de passe figure dans les listes de mots de passe divulgués. Choisissez-en un autre.",
     };
   }
 
@@ -85,7 +85,7 @@ export function checkPasswordShape(
   if (local.length >= 4 && password.toLowerCase().includes(local)) {
     return {
       key: "email",
-      message: "It contains your email address. Anyone guessing would start there.",
+      message: "Il contient votre adresse e-mail. Toute tentative de devinette commencerait par là.",
     };
   }
 

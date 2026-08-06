@@ -35,7 +35,7 @@ export async function savePriceGridAction(
       });
   } catch (error) {
     console.error("[grid]", error);
-    return { error: "Grid not saved. Try again.", fields: {}, saved: false };
+    return { error: "La grille n’a pas été enregistrée. Réessayez.", fields: {}, saved: false };
   }
 
   revalidatePath("/");
@@ -62,7 +62,7 @@ export async function resetPriceGridAction(
     await db.delete(priceGrids).where(eq(priceGrids.ownerId, owner.id));
   } catch (error) {
     console.error("[grid:reset]", error);
-    return { error: "Grid not reset. Try again.", fields: {}, saved: false };
+    return { error: "La grille n’a pas été réinitialisée. Réessayez.", fields: {}, saved: false };
   }
 
   revalidatePath("/");

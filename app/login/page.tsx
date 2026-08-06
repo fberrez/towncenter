@@ -11,7 +11,7 @@ import { SignIn } from "./SignInForm";
 import styles from "@/components/gate/gate.module.css";
 
 export const metadata: Metadata = {
-  title: "Sign in — Towncenter",
+  title: "Connexion — Towncenter",
   // a gate has no business in a search engine index
   robots: { index: false, follow: false },
 };
@@ -36,14 +36,14 @@ export default async function SignInPage() {
 
   return (
     <Gate
-      title="Enter the field"
-      subtitle="Your sectors are where you left them."
+      title="Accéder au terrain"
+      subtitle="Vos secteurs sont là où vous les avez laissés."
       toggle={
         signup.open ? (
           <>
-            No account yet?{" "}
+            Pas encore de compte ?{" "}
             <Link href="/signup" className={styles.link}>
-              Create one
+              Créer un compte
             </Link>
           </>
         ) : null

@@ -23,7 +23,7 @@ export function LevelCard({ level, variant = "tile", className }: LevelCardProps
 
   return (
     <div className={cx("level", className)}>
-      <Badge>Tier</Badge>
+      <Badge>Palier</Badge>
 
       <div className="level__head">
         <span className={cx(titleSize, "level__tier")}>{level.label}</span>
@@ -35,15 +35,15 @@ export function LevelCard({ level, variant = "tile", className }: LevelCardProps
       <Gauge
         value={level.progress}
         tint="var(--text-1)"
-        label={`Tier ${level.label}: ${percent(level.progress * 100)} toward the next`}
+        label={`Palier ${level.label} : ${percent(level.progress * 100)} vers le suivant`}
       />
 
       <p className="t-body-s level__rest tnum">
         {level.xp}
-        {" progress points"}
+        {" points de progression"}
         {next && level.toNextXp !== null
-          ? ` · ${level.toNextXp} more before ${next.label}`
-          : " · highest tier reached"}
+          ? ` · encore ${level.toNextXp} avant ${next.label}`
+          : " · palier maximal atteint"}
       </p>
     </div>
   );

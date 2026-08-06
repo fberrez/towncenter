@@ -21,7 +21,7 @@ export function ResetGrid() {
         </p>
       ) : null}
       <Button type="submit" variant="quiet" size="compact" disabled={inProgress}>
-        {inProgress ? "Resetting…" : "Reset"}
+        {inProgress ? "Réinitialisation…" : "Réinitialiser"}
       </Button>
     </form>
   );

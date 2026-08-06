@@ -16,11 +16,11 @@ export type ResistanceBand = {
 };
 
 export const RESISTANCE_BANDS: readonly ResistanceBand[] = [
-  { key: "easy", label: "Easy", ceiling: 20 },
-  { key: "approachable", label: "Approachable", ceiling: 40 },
-  { key: "solid", label: "Solid", ceiling: 60 },
-  { key: "hard", label: "Hard", ceiling: 80 },
-  { key: "impregnable", label: "Impregnable", ceiling: 100 },
+  { key: "easy", label: "Facile", ceiling: 20 },
+  { key: "approachable", label: "Accessible", ceiling: 40 },
+  { key: "solid", label: "Solide", ceiling: 60 },
+  { key: "hard", label: "Difficile", ceiling: 80 },
+  { key: "impregnable", label: "Imprenable", ceiling: 100 },
 ];
 
 /** The band of a WHOLE resistance percentage. */
@@ -88,7 +88,7 @@ export function Difficulty({
 
   // Both wordings derive from the SAME rounding, so they stay complementary.
   const displayedPct = wording === "odds" ? 100 - resistancePct : resistancePct;
-  const metricName = wording === "odds" ? "Odds" : "Resistance";
+  const metricName = wording === "odds" ? "Chances" : "Résistance";
 
   const calibrated = issues >= CALIBRATION_MIN_OUTCOMES;
 
@@ -101,12 +101,12 @@ export function Difficulty({
     <>
       {facts ? (
         <p className="t-body-s difficulty__caption">
-          Computed from {facts.available} of {facts.total} facts
+          Calculée à partir de {facts.available} faits sur {facts.total}
         </p>
       ) : null}
       {calibrated ? null : (
         <p className="t-body-s difficulty__caption">
-          Estimate not calibrated (n = {issues})
+          Estimation non calibrée (n = {issues})
         </p>
       )}
     </>
@@ -169,7 +169,7 @@ export function Difficulty({
         value={ratio}
         tint="var(--resistance-tint)"
         thickness="epaisse"
-        label={`Resistance: ${percent(resistancePct)}, ${band.label}`}
+        label={`Résistance : ${percent(resistancePct)}, ${band.label}`}
       />
       {captions}
     </div>

@@ -18,12 +18,12 @@ const BANNER_MS = 2_600;
 const BANNER_REDUCED_MS = 5_200;
 
 const EVENT_LABEL_SHORT: Record<EventKind, string> = {
-  survey: "spotted",
-  study: "studied",
-  contact: "called",
-  reply: "reply received",
-  take: "taken",
-  withdrawal: "withdrawn",
+  survey: "repérée",
+  study: "analysée",
+  contact: "appelée",
+  reply: "réponse reçue",
+  take: "signée",
+  withdrawal: "abandonnée",
 };
 
 function motionReduced(): boolean {
@@ -126,17 +126,17 @@ export function Celebration({ result, token, reason = null, onClose }: Celebrati
   }
 
   const complement = advance.levelUp
-    ? `Tier ${advance.level} · ${advance.levelLabel}`
+    ? `Palier ${advance.level} · ${advance.levelLabel}`
     : advance.streakExtended
-      ? `Streak ${advance.streakDays} d`
-      : `${advance.totalXp} progress points in total`;
+      ? `Série de ${advance.streakDays} j`
+      : `${advance.totalXp} points de progression au total`;
 
   return (
     <div className={styles.gain} role="status" aria-live="polite" aria-atomic="true">
       <div className={styles.gain__card}>
         <span className={`t-title-2 tnum ${styles.gain__points}`}>
           + {advance.xp}
-          <span className="sr-only"> progress points</span>
+          <span className="sr-only"> points de progression</span>
         </span>
         <span className={styles.gain__texts}>
           <span className={`t-body ${styles.gain__fact}`}>

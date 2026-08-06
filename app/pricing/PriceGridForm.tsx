@@ -23,32 +23,32 @@ const FIELDS: EditedField[] = [
   {
     key: "baseCents",
     tab: "Base",
-    label: "Base tier",
-    when: "One address, few reviews, no usable photo — the lowest deal you would sign.",
+    label: "Offre de base",
+    when: "Une adresse, peu d’avis, aucune photo exploitable : la prestation la moins chère que vous signeriez.",
   },
   {
     key: "fullSiteCents",
-    tab: "Full site",
-    label: "Full site",
-    when: "One address, a site to build. The offer that sells most often, and the yardstick every rank is measured against.",
+    tab: "Site complet",
+    label: "Site complet",
+    when: "Une adresse, un site à créer. L’offre vendue le plus souvent et l’étalon qui mesure chaque rang.",
   },
   {
     key: "multiPageCents",
-    tab: "Multi-page",
-    label: "Multi-page site",
-    when: "From six pages: detailed menu, forms, booking — a structure rather than a storefront.",
+    tab: "Multi-pages",
+    label: "Site multi-pages",
+    when: "À partir de six pages : menu détaillé, formulaires, réservation — une structure plutôt qu’une vitrine.",
   },
   {
     key: "multiAddressCents",
-    tab: "Multi-address",
-    label: "Multi-address site",
-    when: "Two to five addresses. The work changes in nature, not just in volume.",
+    tab: "Multi-adresses",
+    label: "Site multi-adresses",
+    when: "De deux à cinq adresses. Le travail change de nature, pas seulement de volume.",
   },
   {
     key: "recurringBaseCents",
-    tab: "Monthly",
-    label: "Monthly base",
-    when: "Hosting, domain, backups, small fixes. Deliberately low: it keeps the relationship open, it is not where the margin is.",
+    tab: "Mensuel",
+    label: "Base mensuelle",
+    when: "Hébergement, domaine, sauvegardes, petites corrections. Ce montant est volontairement bas : il entretient la relation, ce n’est pas là que se trouve la marge.",
   },
 ];
 
@@ -187,7 +187,7 @@ export function PriceGridForm({
             <button
               type="button"
               className="pricing__arrow"
-              aria-label={`Previous: ${FIELDS[(step - 1 + FIELDS.length) % FIELDS.length]!.label}`}
+              aria-label={`Précédent : ${FIELDS[(step - 1 + FIELDS.length) % FIELDS.length]!.label}`}
               onClick={() => goTo(step - 1, "back")}
             >
               <Chevron />
@@ -222,7 +222,7 @@ export function PriceGridForm({
               type="button"
               className="pricing__arrow"
               data-next
-              aria-label={`Next: ${FIELDS[(step + 1) % FIELDS.length]!.label}`}
+              aria-label={`Suivant : ${FIELDS[(step + 1) % FIELDS.length]!.label}`}
               onClick={() => goTo(step + 1, "forward")}
             >
               <Chevron />
@@ -248,11 +248,11 @@ export function PriceGridForm({
               className="pricing__save"
               disabled={inProgress || (hydrated && !dirty)}
             >
-              {inProgress ? "Saving…" : "Save the grid"}
+              {inProgress ? "Enregistrement…" : "Enregistrer la grille"}
             </Button>
             {state.saved && !dirty ? (
               <p className="pricing__confirm t-body-s" role="status">
-                {"Saved. The map already follows."}
+                {"Enregistrée. La carte l’utilise déjà."}
               </p>
             ) : null}
           </div>
@@ -282,12 +282,12 @@ export function PriceGridForm({
 
               <div className="pricing__done-body">
                 <h2 id="pricing-done-title" className="t-title-2">
-                  {state.error ? "Grid not saved" : "Grid saved"}
+                  {state.error ? "Grille non enregistrée" : "Grille enregistrée"}
                 </h2>
                 <p className="t-body-s">
                   {state.error
                     ? state.error
-                    : "Every price on the map already follows it."}
+                    : "Chaque prix de la carte l’utilise déjà."}
                 </p>
 
                 <div className="pricing__done-act">
@@ -298,7 +298,7 @@ export function PriceGridForm({
                     autoFocus
                     onClick={() => router.push("/" as Route)}
                   >
-                    {"Back to the map"}
+                    {"Retour à la carte"}
                   </Button>
                   <Button
                     type="button"
@@ -306,7 +306,7 @@ export function PriceGridForm({
                     size="compact"
                     onClick={() => setFinishing(false)}
                   >
-                    {"Stay here"}
+                    {"Rester ici"}
                   </Button>
                 </div>
               </div>

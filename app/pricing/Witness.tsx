@@ -55,7 +55,7 @@ export function Witness({ who, sample, draft, saved }: WitnessProps) {
         <span className="quote__toggle-who t-body-s">{who.split(" · ")[0]}</span>
         <span className="quote__toggle-sum tnum">
           {offGrid ? (
-            "Off-grid"
+            "Hors grille"
           ) : (
             <RollingAmount cents={current.price.value12MonthsCents} />
           )}
@@ -87,7 +87,7 @@ export function Witness({ who, sample, draft, saved }: WitnessProps) {
 
                 <div className="quote__line" data-soft>
                   <dt className="t-body-s">
-                    {`Hosting & upkeep, ${shown.valueHorizonMonths} months`}
+                    {`Hébergement et maintenance, ${shown.valueHorizonMonths} mois`}
                   </dt>
                   <dd className="t-body-s tnum">
                     <RollingAmount cents={upkeepCents} />
@@ -106,7 +106,7 @@ export function Witness({ who, sample, draft, saved }: WitnessProps) {
               </dl>
 
               <div className="quote__total">
-                <Badge>{`Worth over ${shown.valueHorizonMonths} months`}</Badge>
+                <Badge>{`Valeur sur ${shown.valueHorizonMonths} mois`}</Badge>
                 <Loot
                   cents={current.price.value12MonthsCents}
                   rolling
@@ -119,15 +119,15 @@ export function Witness({ who, sample, draft, saved }: WitnessProps) {
 
           {holdingLastReadable ? (
             <p className="quote__foot t-body-s" role="status">
-              {"Last readable grid — a field is empty or out of range."}
+              {"Dernière grille valide : un champ est vide ou hors limites."}
             </p>
           ) : (
             <p className="quote__foot t-body-s tnum">
               {delta !== 0
-                ? `${delta > 0 ? "▲ +" : "▼ −"}${euros(Math.abs(delta))} vs saved`
-                : "Matches the saved grid."}
+                ? `${delta > 0 ? "▲ +" : "▼ −"}${euros(Math.abs(delta))} par rapport à la grille enregistrée`
+                : "Identique à la grille enregistrée."}
               {differsFromDefault
-                ? ` · default ${euros(fallback.price.value12MonthsCents)}`
+                ? ` · valeur par défaut : ${euros(fallback.price.value12MonthsCents)}`
                 : ""}
             </p>
           )}
