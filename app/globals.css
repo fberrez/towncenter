@@ -556,6 +556,10 @@ table,
   outline: none;
   border-radius: 10px;
 }
+[data-slot="textarea"]:focus-visible {
+  outline: none;
+  border-radius: 10px;
+}
 [data-slot="input-group-control"]:focus-visible {
   outline: none;
   border-radius: 0;
