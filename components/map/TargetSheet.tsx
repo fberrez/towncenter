@@ -17,6 +17,7 @@ import {
   useState,
   useActionState,
 } from "react";
+import { Loader2 } from "lucide-react";
 
 import {
   advanceTargetAction,
@@ -351,8 +352,8 @@ export function TargetSheet({
   const enrichButton = (
     <form action={enrich}>
       <input type="hidden" name="id" value={target.id} />
-      <Button type="submit" variant="quiet" size="compact" disabled={inProgress}>
-        {enrichPending ? "…" : target.enriched ? "Refresh the facts" : "Fetch the facts"}
+      <Button type="submit" variant="quiet" size="compact" disabled={inProgress} loading={enrichPending}>
+        {enrichPending ? "Fetching…" : target.enriched ? "Refresh the facts" : "Fetch the facts"}
       </Button>
     </form>
   );
@@ -389,6 +390,7 @@ export function TargetSheet({
             type="button"
             className="t-body field__action"
             disabled={inProgress}
+            aria-busy={enrichPending || undefined}
             onClick={() => {
               const data = new FormData();
               data.set("id", target.id);
@@ -397,7 +399,14 @@ export function TargetSheet({
           >
             {/* The clicked row says it is working: a Google call takes over a
                 second and would otherwise read as a dead click. */}
-            {enrichPending ? "…" : action.prompt}
+            {enrichPending ? (
+              <span className="field__action-busy">
+                <Loader2 className="button__spinner" aria-hidden="true" />
+                Fetching…
+              </span>
+            ) : (
+              action.prompt
+            )}
           </button>
         );
 

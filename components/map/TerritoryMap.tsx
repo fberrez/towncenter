@@ -1965,7 +1965,9 @@ export function TerritoryMap({
         <TargetSheet
           detail={detail}
           outcomeCount={outcomeCount}
-          onClose={() => select(null)}
+          // Falls back to the floating preview, not a full deselect — except
+          // without a map, which has no preview to fall back to.
+          onClose={() => (fallback ? select(null) : setSheetOpen(false))}
           onSelect={select}
         />
       ) : null}
