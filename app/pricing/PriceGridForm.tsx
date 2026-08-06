@@ -69,7 +69,7 @@ export function PriceGridForm({
   );
 
   const [read, setRead] = useState<GridForm>({ grid: grid, fields: {} });
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
   const [way, setWay] = useState<"forward" | "back">("forward");
   const [smash, setSmash] = useState(0);
 
