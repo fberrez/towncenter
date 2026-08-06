@@ -2,9 +2,41 @@
 // database: only the pure `@/lib` modules, so a client component using a
 // primitive does not pull the Postgres driver into the browser bundle.
 
-export { Tag, type TagProps } from "./Tag";
-export { Panel, type PanelProps } from "./Panel";
-export { Button, type ButtonProps } from "./Button";
+export { Badge, badgeVariants, type BadgeProps } from "./badge";
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+} from "./card";
+export { Button, buttonVariants, type ButtonProps } from "./button";
+export { Input } from "./input";
+export { Textarea } from "./textarea";
+export { Label } from "./label";
+export { Separator } from "./separator";
+export {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+  FieldContent,
+  FieldTitle,
+} from "./field";
+export {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupText,
+  InputGroupInput,
+  InputGroupTextarea,
+} from "./input-group";
 
 export { Loot, type LootProps } from "./Loot";
 export { RollingAmount, type RollingAmountProps } from "./RollingAmount";
@@ -42,15 +74,22 @@ export { Stamp, type StampProps } from "./Stamp";
 export { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
 
 export {
-  Menu,
-  MenuButton,
-  MenuLink,
-  MenuHeading,
-  MenuSeparator,
-  type MenuProps,
-  type MenuButtonProps,
-  type MenuLinkProps,
-} from "./Menu";
+  DropdownMenu,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "./dropdown-menu";
 
 export { ThemeToggle, ThemeIcon, useTheme } from "./Toggles";
 // the keys come from `./theme`, which carries no directive: read from

@@ -5,7 +5,7 @@
 // TargetSheet and is never duplicated here.
 
 import type { TargetDetail } from "@/app/queries";
-import { Button, Loot, Tag, percent, resistanceBand } from "@/components/ui";
+import { Button, Loot, Badge, percent, resistanceBand } from "@/components/ui";
 
 export type FloatingSheetProps = {
   detail: TargetDetail;
@@ -83,7 +83,7 @@ export function FloatingSheet({
         />
 
         <div className="floating__resistance">
-          <Tag>Resistance</Tag>
+          <Badge>Resistance</Badge>
           {/* The figure and the word, never one without the other. */}
           <span className="t-title-3 tnum floating__rate">
             {percent(target.resistancePercent)}
@@ -92,7 +92,7 @@ export function FloatingSheet({
         </div>
       </div>
 
-      <Button ton="primary" size="compacte" onClick={onOpen} className="floating__action">
+      <Button variant="primary" size="compact" onClick={onOpen} className="floating__action">
         Open the record
       </Button>
     </div>

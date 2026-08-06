@@ -38,7 +38,7 @@ import {
   Loot,
   Stamp,
   Difficulty,
-  Tag,
+  Badge,
   Fact,
   SourceLegend,
   RarityTag,
@@ -351,7 +351,7 @@ export function TargetSheet({
   const enrichButton = (
     <form action={enrich}>
       <input type="hidden" name="id" value={target.id} />
-      <Button type="submit" ton="discret" size="compacte" disabled={inProgress}>
+      <Button type="submit" variant="quiet" size="compact" disabled={inProgress}>
         {enrichPending ? "…" : target.enriched ? "Refresh the facts" : "Fetch the facts"}
       </Button>
     </form>
@@ -427,10 +427,10 @@ export function TargetSheet({
                   : target.manualPhone) ?? ""
               }
             />
-            <Button type="submit" ton="secondaire" size="compacte" disabled={inProgress}>
+            <Button type="submit" variant="secondary" size="compact" disabled={inProgress}>
               {notePending ? "…" : "Save"}
             </Button>
-            <Button ton="discret" size="compacte" onClick={() => setEditing(null)}>
+            <Button variant="quiet" size="compact" onClick={() => setEditing(null)}>
               Cancel
             </Button>
           </form>
@@ -475,8 +475,8 @@ export function TargetSheet({
             }
           />
           <Button
-            ton="discret"
-            size="compacte"
+            variant="quiet"
+            size="compact"
             className="sheet__close"
             onClick={onClose}
             aria-label="Close the record"
@@ -548,14 +548,14 @@ export function TargetSheet({
         {target.state === "dismissed" ? (
           <form action={restore} className="sheet__action">
             <input type="hidden" name="id" value={target.id} />
-            <Button type="submit" ton="primary" disabled={inProgress}>
+            <Button type="submit" variant="primary" disabled={inProgress}>
               Put back in play
             </Button>
           </form>
         ) : upcoming ? (
           <div className="sheet__action">
             <Button
-              ton="primary"
+              variant="primary"
               disabled={inProgress}
               onClick={() => cross(upcoming)}
             >
@@ -577,7 +577,7 @@ export function TargetSheet({
             className="sheet__tab"
             onClick={() => setTab(item.key)}
           >
-            <Tag as="span">{item.label}</Tag>
+            <Badge>{item.label}</Badge>
             {item.key === "log" && log.length > 0 ? (
               <span className="t-micro tnum sheet__tab-count">{log.length}</span>
             ) : null}
@@ -724,12 +724,12 @@ export function TargetSheet({
                       row: on the button row nothing at rest told which of the
                       three words was clickable. */}
                   <div className="sheet__exits">
-                    <Tag>Exits</Tag>
+                    <Badge>Exits</Badge>
                     <div className="sheet__exit-actions">
                       {target.state === "withdrawn" ? null : (
                         <Button
-                          ton="secondaire"
-                          size="compacte"
+                          variant="secondary"
+                          size="compact"
                           disabled={inProgress}
                           aria-expanded={input === "withdrawn"}
                           onClick={() => {
@@ -745,8 +745,8 @@ export function TargetSheet({
                         <input type="hidden" name="id" value={target.id} />
                         <Button
                           type="submit"
-                          ton="secondaire"
-                          size="compacte"
+                          variant="secondary"
+                          size="compact"
                           disabled={inProgress}
                         >
                           Set aside
@@ -778,13 +778,13 @@ export function TargetSheet({
                           <input type="hidden" name="id" value={target.id} />
                           <Button
                             type="button"
-                            ton="discret"
+                            variant="quiet"
                             disabled={inProgress}
                             onClick={() => setConfirmUndo(false)}
                           >
                             Keep
                           </Button>
-                          <Button type="submit" ton="secondaire" disabled={inProgress}>
+                          <Button type="submit" variant="secondary" disabled={inProgress}>
                             {undoPending ? "…" : "Erase this fact"}
                           </Button>
                         </form>
@@ -801,7 +801,7 @@ export function TargetSheet({
                       <input type="hidden" name="id" value={target.id} />
                       <input type="hidden" name="to" value="taken" />
                       <label className="sheet__field">
-                        <Tag as="span">Amount actually signed</Tag>
+                        <Badge>Amount actually signed</Badge>
                         {/* The field starts EMPTY: the spoils are what is in
                             play, the take is what was banked. Prefilling with
                             the estimate would report revenue nobody signed. */}
@@ -823,7 +823,7 @@ export function TargetSheet({
                         </span>
                       </label>
                       <label className="sheet__field">
-                        <Tag as="span">What was said</Tag>
+                        <Badge>What was said</Badge>
                         <textarea
                           name="note"
                           rows={2}
@@ -834,13 +834,13 @@ export function TargetSheet({
                       <div className="sheet__actions">
                         <Button
                           type="button"
-                          ton="discret"
+                          variant="quiet"
                           disabled={inProgress}
                           onClick={() => setInput(null)}
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" ton="primary" disabled={inProgress}>
+                        <Button type="submit" variant="primary" disabled={inProgress}>
                           {advancePending ? "…" : "Record the take"}
                         </Button>
                       </div>
@@ -852,7 +852,7 @@ export function TargetSheet({
                       <input type="hidden" name="id" value={target.id} />
                       <input type="hidden" name="to" value="withdrawn" />
                       <label className="sheet__field">
-                        <Tag as="span">The reason, verbatim</Tag>
+                        <Badge>The reason, verbatim</Badge>
                         <textarea
                           name="note"
                           rows={2}
@@ -865,7 +865,7 @@ export function TargetSheet({
                           months: write down what was said.
                         </span>
                       </label>
-                      <Button type="submit" ton="secondaire" disabled={inProgress}>
+                      <Button type="submit" variant="secondary" disabled={inProgress}>
                         Record the withdrawal
                       </Button>
                     </form>
@@ -876,7 +876,7 @@ export function TargetSheet({
 
             <section className="sheet__section">
               <div className="sheet__section-head">
-                <Tag as="h3">The neighbours, within 300 m</Tag>
+                <Badge asChild><h3>The neighbours, within 300 m</h3></Badge>
                 {/* The businesses come from the survey, the distance is computed. */}
                 <Sources keys={["sirene", "computed"]} />
               </div>
@@ -915,8 +915,8 @@ export function TargetSheet({
                 composed here. */}
             <div className="sheet__tools">
               <Button
-                ton="discret"
-                size="compacte"
+                variant="quiet"
+                size="compact"
                 className="sheet__copy"
                 onClick={() => {
                   void copyAsPrompt();
@@ -936,7 +936,7 @@ export function TargetSheet({
 
             {copied === "manual" ? (
               <div className="sheet__entry-input panel">
-                <Tag as="p">Clipboard refused</Tag>
+                <Badge asChild><p>Clipboard refused</p></Badge>
                 <p className="t-body-s tone-2">
                   The browser did not grant clipboard access — that is what happens
                   outside HTTPS. The brief is below, select it.
@@ -948,7 +948,7 @@ export function TargetSheet({
                   value={sheetAsMarkdown(detail, outcomeCount)}
                   onFocus={(event) => event.currentTarget.select()}
                 />
-                <Button ton="discret" size="compacte" onClick={() => setCopied("idle")}>
+                <Button variant="quiet" size="compact" onClick={() => setCopied("idle")}>
                   Close
                 </Button>
               </div>
@@ -965,7 +965,7 @@ export function TargetSheet({
           >
             <section className="sheet__section">
               <div className="sheet__section-head">
-                <Tag as="h3">The five facts</Tag>
+                <Badge asChild><h3>The five facts</h3></Badge>
                 {enrichButton}
               </div>
               <div className="sheet__facts panel">
@@ -999,7 +999,7 @@ export function TargetSheet({
             </section>
 
             <section className="sheet__section">
-              <Tag as="h3">The record</Tag>
+              <Badge asChild><h3>The record</h3></Badge>
               <div className="panel sheet__fields">
                 {main.map(fieldRow)}
               </div>
@@ -1014,7 +1014,7 @@ export function TargetSheet({
                 <div className="sheet__all-body">
                   {groups.map((group) => (
                     <div key={group.key} className="sheet__group" data-group={group.key}>
-                      <Tag as="p">{group.name}</Tag>
+                      <Badge asChild><p>{group.name}</p></Badge>
                       <div className="panel sheet__fields">
                         {group.fields.map(fieldRow)}
                       </div>
@@ -1027,7 +1027,7 @@ export function TargetSheet({
             {/* The factor product, scrolled to from the head figure. */}
             <section className="sheet__section" ref={calculationRef}>
               <div className="sheet__section-head">
-                <Tag as="h3">Where this figure comes from</Tag>
+                <Badge asChild><h3>Where this figure comes from</h3></Badge>
                 {/* None of this was surveyed; all of it is derived. */}
                 <Sources keys={["computed"]} />
               </div>
@@ -1080,7 +1080,7 @@ export function TargetSheet({
             {/* A pictogram alone is a riddle: the legend carries the full name,
                 what the source provides, and its address when it has one. */}
             <section className="sheet__section">
-              <Tag as="h3">Where all of this comes from</Tag>
+              <Badge asChild><h3>Where all of this comes from</h3></Badge>
               <SourceLegend keys={citedSources} className="panel" />
               <p className="t-body-s tone-3">
                 Only the sources this record actually uses are listed. A missing one is
@@ -1100,7 +1100,7 @@ export function TargetSheet({
           >
             <section className="sheet__section">
               <div className="sheet__section-head">
-                <Tag as="h3">The log</Tag>
+                <Badge asChild><h3>The log</h3></Badge>
                 {/* The only source nobody can refresh on your behalf. */}
                 <Sources keys={["log"]} />
               </div>

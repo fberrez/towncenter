@@ -20,7 +20,7 @@ export function ResetGrid() {
           {state.error}
         </p>
       ) : null}
-      <Button type="submit" ton="discret" size="compacte" disabled={inProgress}>
+      <Button type="submit" variant="quiet" size="compact" disabled={inProgress}>
         {inProgress ? "Resetting…" : "Reset"}
       </Button>
     </form>

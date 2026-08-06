@@ -70,8 +70,8 @@ export function PlacesKeyForm({ defaultValue }: PlacesKeyFormProps) {
       <div className={styles.keyActions}>
         <Button
           type="submit"
-          ton="secondaire"
-          size="compacte"
+          variant="secondary"
+          size="compact"
           formAction={testDispatch}
           disabled={testPending || savePending || key.length < 20}
         >
@@ -79,7 +79,7 @@ export function PlacesKeyForm({ defaultValue }: PlacesKeyFormProps) {
         </Button>
         <Button
           type="submit"
-          ton="primary"
+          variant="primary"
           formAction={saveDispatch}
           disabled={savePending || testPending || key.length < 20}
         >

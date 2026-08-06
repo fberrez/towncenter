@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Loot, RollingAmount, Source, Tag } from "@/components/ui";
+import { Loot, RollingAmount, Source, Badge } from "@/components/ui";
 import { formatEuros } from "@/lib/format";
 import { DEFAULT_PRICE_GRID } from "@/lib/priceGrid";
 import { PRICE_OFFER_LABELS, scorePlace } from "@/lib/scoring";
@@ -106,7 +106,7 @@ export function Witness({ who, sample, draft, saved }: WitnessProps) {
               </dl>
 
               <div className="quote__total">
-                <Tag>{`Worth over ${shown.valueHorizonMonths} months`}</Tag>
+                <Badge>{`Worth over ${shown.valueHorizonMonths} months`}</Badge>
                 <Loot
                   cents={current.price.value12MonthsCents}
                   rolling

@@ -1,6 +1,6 @@
 import { formatEuros, type EurosOptions } from "@/lib/format";
 
-import { Tag } from "./Tag";
+import { Badge } from "./badge";
 import { nonBreaking } from "./percent";
 import { RollingAmount } from "./RollingAmount";
 import { cx } from "./style";
@@ -53,7 +53,7 @@ export function Loot({
     <div
       className={cx("loot", `loot--${size}`, ton === "neutral" && "loot--neutral", className)}
     >
-      {label ? <Tag>{label}</Tag> : null}
+      {label ? <Badge>{label}</Badge> : null}
 
       {offGrid ? (
         <>

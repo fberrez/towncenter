@@ -1,6 +1,6 @@
 import { TIERS, type Level } from "@/lib/game";
 
-import { Tag } from "./Tag";
+import { Badge } from "./badge";
 import { Gauge } from "./Gauge";
 import { percent } from "./percent";
 import { cx } from "./style";
@@ -23,7 +23,7 @@ export function LevelCard({ level, variant = "tile", className }: LevelCardProps
 
   return (
     <div className={cx("level", className)}>
-      <Tag>Tier</Tag>
+      <Badge>Tier</Badge>
 
       <div className="level__head">
         <span className={cx(titleSize, "level__tier")}>{level.label}</span>

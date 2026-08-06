@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Themes switch on `data-theme`, not a `.dark` class: the variant follows. */
+@custom-variant dark (&:is([data-theme="dark"] *));
 
 /* ==========================================================================
    TOWNCENTER — art-direction tokens.
@@ -109,6 +114,8 @@
   --accent-mark: #0055ba;
   --accent-veil: rgb(0 85 186 / 0.14);
   --accent-text: #0055ba;
+  /* On the cobalt: white measures 7.0:1. Read by shadcn's `--primary`. */
+  --primary-foreground: #ffffff;
 
   /* Two states, never three. Measured against `--bg`: 5.6:1 and 5.7:1. */
   --success: #006e30; /* oklch(0.47 0.13 150) */
@@ -233,6 +240,8 @@
   --accent-mark: #3689dd; /* oklch(0.62 0.135 252) */
   --accent-veil: rgb(110 181 255 / 0.2);
   --accent-text: #6eb5ff;
+  /* The accent rises to L 0.76: ink goes ON it, not white. */
+  --primary-foreground: #080a0d;
 
   --success: #4eb068; /* 7,3:1 */
   --failure: #e66e68; /* 6,4:1 */
@@ -327,6 +336,46 @@
   /* Minimum touch target. This is a field tool: used in the street, one hand
      on the phone. It does not move by a pixel when the art direction changes. */
   --touch-target: 44px;
+
+  /* --------------------------------------------------------------------
+     SHADCN TOKENS, MAPPED TO THE SYSTEM ABOVE.
+
+     Every value is a REFERENCE to a towncenter token, so `data-theme`
+     switches them with no `.dark` block of their own. `--accent` is NOT
+     redefined here: it stays the cobalt, and the shadcn "accent" surface
+     (a row hover) is wired to `--surface-2` in the `@theme inline` bridge.
+     `--primary` carries the cobalt into shadcn components.
+     -------------------------------------------------------------------- */
+  --background: var(--bg);
+  --foreground: var(--text-1);
+  --card: var(--surface-1);
+  --card-foreground: var(--text-1);
+  --popover: var(--surface-1);
+  --popover-foreground: var(--text-1);
+  --primary: var(--accent);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text-1);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-2);
+  --accent-foreground: var(--text-1);
+  --destructive: var(--failure);
+  --border: var(--border-1);
+  --input: var(--border-2);
+  --ring: var(--accent);
+  --chart-1: var(--accent);
+  --chart-2: var(--success);
+  --chart-3: var(--failure);
+  --chart-4: var(--resistance-solid);
+  --chart-5: var(--resistance-hard);
+  --radius: var(--radius-2);
+  --sidebar: var(--bg);
+  --sidebar-foreground: var(--text-1);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--text-1);
+  --sidebar-border: var(--border-1);
+  --sidebar-ring: var(--accent);
 }
 
 /* The bridge to Tailwind 4: `bg-surface-1`, `text-text-2`, `font-serif`. */
@@ -341,12 +390,58 @@
   --color-text-2: var(--text-2);
   --color-text-3: var(--text-3);
   --color-text-4: var(--text-4);
-  --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-accent-text: var(--accent-text);
   --color-success: var(--success);
+  --color-success-text: var(--success-text);
   --color-failure: var(--failure);
+  --color-failure-text: var(--failure-text);
   --font-serif: var(--typeface-serif);
   --font-mono: var(--typeface-mono);
+  /* shadcn reads sans/heading here: the system's mono and serif. */
+  --font-heading: var(--typeface-serif);
+  --font-sans: var(--typeface-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  /* shadcn's `bg-accent` is a hover surface, not the cobalt: the cobalt
+     stays `--accent` for `readPalette()` and reaches utilities as `primary`. */
+  --color-accent: var(--surface-2);
+  /* Radii land on the system scale instead of shadcn's multipliers. */
+  --radius-sm: var(--radius-1);
+  --radius-md: var(--radius-2);
+  --radius-lg: var(--radius-3);
+  --radius-xl: var(--radius-4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 * {
@@ -453,6 +548,21 @@ table,
   outline: 2px solid var(--focus);
   outline-offset: 3px;
   border-radius: var(--radius-1);
+}
+
+/* Inputs carry their own focus ring (border + veil): the global outline
+   would stack a second one, and its 2 px radius would square their corners. */
+[data-slot="input"]:focus-visible {
+  outline: none;
+  border-radius: 10px;
+}
+[data-slot="textarea"]:focus-visible {
+  outline: none;
+  border-radius: 10px;
+}
+[data-slot="input-group-control"]:focus-visible {
+  outline: none;
+  border-radius: 0;
 }
 
 /* The system setting is the only one: there is no in-app motion toggle. Some
@@ -2296,4 +2406,19 @@ li:hover .source,
 }
 .maplibregl-ctrl-attrib a {
   color: var(--text-2) !important;
+}
+
+/* No `.dark` block: every shadcn token above is a reference to a towncenter
+   token, and `data-theme` flips those. A second palette would drift. */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

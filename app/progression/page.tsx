@@ -17,7 +17,7 @@ import {
   streakWeek,
 } from "@/components/game";
 import styles from "@/components/game/game.module.css";
-import { Loot, Tag, Gauge, LevelCard, Panel, StreakCard, percent } from "@/components/ui";
+import { Loot, Badge, Gauge, LevelCard, Card, CardHeader, CardTitle, CardAction, StreakCard, percent } from "@/components/ui";
 import { formatEuros } from "@/lib/format";
 import { SEASON_DAYS } from "@/lib/game";
 import { MAX_TARGETS_IN_VIEW } from "@/lib/limits";
@@ -150,7 +150,7 @@ export default async function ProgressionPage() {
 
         <section className={styles.section}>
           <div className={styles.tiles}>
-            <Panel>
+            <Card>
               <Loot
                 cents={seasonReport.capturedCents}
                 size="hero"
@@ -171,9 +171,9 @@ export default async function ProgressionPage() {
                   {seasonReport.inPlayCount > 1 ? "es" : ""} still in play.
                 </p>
               ) : null}
-            </Panel>
+            </Card>
 
-            <Panel>
+            <Card>
               {/* the gold stays on the first tile: what is still in play is not
                   money, it is an estimate */}
               <Loot
@@ -194,15 +194,15 @@ export default async function ProgressionPage() {
                   The read ceiling cut in: this total is a floor.
                 </p>
               ) : null}
-            </Panel>
+            </Card>
 
-            <Panel>
+            <Card>
               <StreakCard streak={seasonReport.streak} record={record} week={week} />
-            </Panel>
+            </Card>
           </div>
 
           <div className={`${styles.tiles} ${styles["tiles--two"]}`}>
-            <Panel>
+            <Card>
               <LevelCard level={progression.level} />
               <p className={`t-body-s tnum ${styles.tile__extra}`}>
                 {progression.eventCount} fact
@@ -210,9 +210,12 @@ export default async function ProgressionPage() {
                 {" · "}
                 progress is frozen at the moment of the fact, never recomputed
               </p>
-            </Panel>
+            </Card>
 
-            <Panel title="The season">
+            <Card>
+              <CardHeader>
+                <CardTitle>The season</CardTitle>
+              </CardHeader>
               <Gauge
                 value={seasonAdvance}
                 name="Elapsed"
@@ -224,13 +227,16 @@ export default async function ProgressionPage() {
                 month does not weigh forever. There is no leaderboard and no opponent —
                 the only ranking in the product is the one of sectors, below.
               </p>
-            </Panel>
+            </Card>
           </div>
         </section>
 
         {/* The section this page exists for: what the model announced, set
             against what actually happened. Do not remove it or soften it. */}
-        <Panel title="The model’s honesty">
+        <Card>
+          <CardHeader>
+            <CardTitle>The model’s honesty</CardTitle>
+          </CardHeader>
           <div className={styles.honesty}>
             <p className={`t-body ${styles.section__intro}`}>
               What the model announces, set against what actually happened. Two
@@ -259,7 +265,7 @@ export default async function ProgressionPage() {
             </div>
 
             <div>
-              <Tag as="h3">Announced price against signed price</Tag>
+              <Badge asChild><h3>Announced price against signed price</h3></Badge>
               <div className={styles.honesty__gap}>
                 <Loot
                   cents={met.comparable > 0 ? met.promisedCents : null}
@@ -275,7 +281,7 @@ export default async function ProgressionPage() {
                   reason={null}
                 />
                 <div>
-                  <Tag>Held</Tag>
+                  <Badge>Held</Badge>
                   <p className={`t-title-1 tnum ${styles["honesty__gap-value"]}`}>
                     {met.met === null ? "—" : percent(met.met * 100)}
                   </p>
@@ -290,9 +296,11 @@ export default async function ProgressionPage() {
             </div>
 
             <div>
-              <Tag as="h3">
-                Announced odds against the rate actually observed
-              </Tag>
+              <Badge asChild>
+                <h3>
+                  Announced odds against the rate actually observed
+                </h3>
+              </Badge>
               <table className={`${styles.table} t-body-s`}>
                 <thead>
                   <tr>
@@ -340,7 +348,7 @@ export default async function ProgressionPage() {
             </div>
 
             <div>
-              <Tag as="h3">What this page does not prove yet</Tag>
+              <Badge asChild><h3>What this page does not prove yet</h3></Badge>
               <ul className={`t-body-s ${styles.honesty__caveats}`}>
                 {caveats(met).map((row) => (
                   <li key={row}>{row}</li>
@@ -354,9 +362,15 @@ export default async function ProgressionPage() {
               </ul>
             </div>
           </div>
-        </Panel>
+        </Card>
 
-        <Panel title="The sectors" action={<span className="t-body-s tone-2">sorted by spoils taken</span>}>
+        <Card>
+          <CardHeader>
+            <CardTitle>The sectors</CardTitle>
+            <CardAction>
+              <span className="t-body-s tone-2">sorted by spoils taken</span>
+            </CardAction>
+          </CardHeader>
           {sectors.length === 0 ? (
             <p className={`t-body ${styles.empty}`}>
               No sector surveyed. The map is waiting for a first outline.
@@ -423,10 +437,13 @@ export default async function ProgressionPage() {
               </p>
             </>
           )}
-        </Panel>
+        </Card>
 
         <div className={`${styles.tiles} ${styles["tiles--two"]}`}>
-          <Panel title="Rank distribution">
+          <Card>
+            <CardHeader>
+              <CardTitle>Rank distribution</CardTitle>
+            </CardHeader>
             {seasonReport.ranks.length === 0 ? (
               <p className={`t-body ${styles.empty}`}>Nothing in play for now.</p>
             ) : (
@@ -453,9 +470,12 @@ export default async function ProgressionPage() {
               brings in, multiplied by the odds of signing it — and not the quote alone:
               a large quote you will not sign is not a large take.
             </p>
-          </Panel>
+          </Card>
 
-          <Panel title="Spoils signed, month by month">
+          <Card>
+            <CardHeader>
+              <CardTitle>Spoils signed, month by month</CardTitle>
+            </CardHeader>
             <div className={styles.bars}>
               {months.map((part) => (
                 <div className={styles.bar} key={part.key}>
@@ -480,10 +500,13 @@ export default async function ProgressionPage() {
               removing them would turn two takes in January and two in June into a curve
               that climbs nicely.
             </p>
-          </Panel>
+          </Card>
         </div>
 
-        <Panel title="The log">
+        <Card>
+          <CardHeader>
+            <CardTitle>The log</CardTitle>
+          </CardHeader>
           {log.length === 0 ? (
             <p className={`t-body ${styles.empty}`}>No fact logged.</p>
           ) : (
@@ -513,7 +536,7 @@ export default async function ProgressionPage() {
             Plain text, no rank colour, no icon. That is what keeps the log readable
             cold six months later, including on the bad days.
           </p>
-        </Panel>
+        </Card>
       </main>
     </>
   );

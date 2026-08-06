@@ -4,7 +4,7 @@ import type { Route } from "next";
 
 import { requireUser } from "@/lib/accounts";
 import { getOnboardingFacts, type OnboardingFacts } from "@/app/queries";
-import { Button, Panel, Tag } from "@/components/ui";
+import { Button, Badge, Card, CardHeader, CardTitle } from "@/components/ui";
 import { WorldMap } from "@/components/gate/WorldMap";
 import townCentre from "@/components/gate/towncenter.png";
 import Image from "next/image";
@@ -156,7 +156,7 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
   if (facts.placesKeySource === "env") {
     return (
       <>
-        <Tag as="h2">Google Places</Tag>
+        <Badge asChild><h2>Google Places</h2></Badge>
         <p className="t-body">
           The key is provided by the server environment
           (<code>GOOGLE_PLACES_API_KEY</code>). Nothing to do here.
@@ -171,12 +171,12 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
   if (facts.placesKeySource === "account") {
     return (
       <>
-        <Tag as="h2">Google Places</Tag>
+        <Badge asChild><h2>Google Places</h2></Badge>
         <p className="t-body">
           Your key is configured: <code>{facts.placesKeyMask}</code>.
         </p>
         <form action={removePlacesKeyAction} className={styles.removeForm}>
-          <Button type="submit" ton="discret" size="compacte">
+          <Button type="submit" variant="quiet" size="compact">
             Remove the key
           </Button>
         </form>
@@ -189,20 +189,23 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
 
   return (
     <>
-      <Tag as="h2">Google Places</Tag>
+      <Badge asChild><h2>Google Places</h2></Badge>
       <p className="t-body">
         Enrichment needs a Google Places API key. Without it, the map still
         works — surveying, scoring and the ledger need no key at all — but no
         business will ever get a website address, and the in-house site audit
         has nothing to read.
       </p>
-      <Panel title="Your key">
+      <Card>
+        <CardHeader>
+          <CardTitle>Your key</CardTitle>
+        </CardHeader>
         <PlacesKeyForm />
         <p className="t-body-s tone-3">
           Stored on this instance, used server-side only. One billed request is
           made when you click &ldquo;Check the key&rdquo;.
         </p>
-      </Panel>
+      </Card>
       <Link href="/onboarding?step=grid" className={styles.stepLink}>
         Skip for now →
       </Link>
@@ -213,7 +216,7 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
 function GridStep({ facts }: { facts: OnboardingFacts }) {
   return (
     <>
-      <Tag as="h2">Price grid</Tag>
+      <Badge asChild><h2>Price grid</h2></Badge>
       <p className="t-body">
         Every amount on the map comes from your grid: the loot on a target, the
         treasure of a sector, the rank of a business. The default grid ships
@@ -244,7 +247,7 @@ function GridStep({ facts }: { facts: OnboardingFacts }) {
 function SectorStep({ facts }: { facts: OnboardingFacts }) {
   return (
     <>
-      <Tag as="h2">First sector</Tag>
+      <Badge asChild><h2>First sector</h2></Badge>
       <p className="t-body">
         Draw a sector on the map. It fills with every business actually
         registered there — the French national company register knows them, and
@@ -258,7 +261,7 @@ function SectorStep({ facts }: { facts: OnboardingFacts }) {
         </p>
       ) : null}
       <form action={finishOnboardingAction}>
-        <Button type="submit" ton="primary" fullWidth>
+        <Button type="submit" variant="primary" fullWidth>
           {facts.sectorCount > 0 ? "Back to the map" : "Enter the map"}
         </Button>
       </form>
