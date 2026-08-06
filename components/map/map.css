@@ -1332,6 +1332,15 @@ textarea.sheet__input {
   text-decoration: none;
 }
 
+/* The row that triggered the fetch, made to look busy rather than dead: the
+   underline is gone (it is `:disabled` already) but the spinner replaces it
+   as the sign that something is happening. */
+.field__action-busy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 /* "Nothing can fill it" is not clickable and must not look like it. */
 .field__reason {
   color: var(--text-3);
