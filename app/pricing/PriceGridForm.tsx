@@ -8,14 +8,7 @@ import { Button, RollingAmount } from "@/components/ui";
 import type { PriceGrid, ScoringFacts } from "@/lib/types";
 
 import { savePriceGridAction, resetPriceGridAction } from "./actions";
-import {
-  COUNT_FIELDS,
-  EURO_FIELDS,
-  centsToEuros,
-  readGridForm,
-  sameGrid,
-  type GridForm,
-} from "./form";
+import { centsToEuros, readGridForm, sameGrid, type GridForm } from "./form";
 import { INITIAL_PRICE_GRID_STATE } from "./state";
 import { Witness } from "./Witness";
 
@@ -60,10 +53,6 @@ const FIELDS: EditedField[] = [
 ];
 
 const LEAVE_AFTER_MS = 5000;
-
-const EDITED_KEYS = new Set<string>(FIELDS.map((item) => item.key));
-const KEPT_EURO_KEYS = EURO_FIELDS.filter((key) => !EDITED_KEYS.has(key));
-const KEPT_COUNT_KEYS = COUNT_FIELDS.filter((key) => !EDITED_KEYS.has(key));
 
 export type StepWitness = { who: string; facts: ScoringFacts };
 
@@ -152,7 +141,9 @@ export function PriceGridForm({
         action={action}
         className="pricing__layout"
         data-smash={smash === 0 ? undefined : smash % 2 === 0 ? "a" : "b"}
-        onChange={(event) => setRead(readGridForm(new FormData(event.currentTarget)))}
+        onChange={(event) =>
+          setRead(readGridForm(new FormData(event.currentTarget), grid))
+        }
       >
         <div
           className="pricing__stage"
@@ -247,26 +238,6 @@ export function PriceGridForm({
               {activeError}
             </p>
           ) : null}
-
-          {KEPT_EURO_KEYS.map((key) => (
-            <input
-              key={key}
-              type="hidden"
-              name={key}
-              value={centsToEuros(Math.abs(grid[key]))}
-            />
-          ))}
-          <input
-            type="hidden"
-            name="noPhotoCents"
-            value={centsToEuros(Math.abs(grid.noPhotoCents))}
-          />
-          {KEPT_COUNT_KEYS.map((key) => (
-            <input key={key} type="hidden" name={key} value={String(grid[key])} />
-          ))}
-          {grid.cappedOffers.map((offer) => (
-            <input key={offer} type="hidden" name="cappedOffers" value={offer} />
-          ))}
 
           {state.error ? (
             <p className="pricing__refusal t-body-s" role="alert">

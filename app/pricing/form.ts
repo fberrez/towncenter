@@ -1,14 +1,14 @@
 import { PRICE_GRID_SCHEMA } from "@/lib/priceGrid";
 import type { PriceGrid, PriceOffer } from "@/lib/types";
 
-export const CAPPABLE_OFFERS: readonly PriceOffer[] = [
+const CAPPABLE_OFFERS: readonly PriceOffer[] = [
   "base",
   "full-site",
   "multi-page",
   "multi-address",
 ];
 
-export const EURO_FIELDS = [
+const EURO_FIELDS = [
   "baseCents",
   "fullSiteCents",
   "multiPageCents",
@@ -23,7 +23,7 @@ export const EURO_FIELDS = [
   "recurringCapCents",
 ] as const;
 
-export const COUNT_FIELDS = [
+const COUNT_FIELDS = [
   "valueHorizonMonths",
   "maxAddressesInGrid",
   "complexSiteMinPages",
@@ -40,7 +40,7 @@ export function centsToEuros(cents: number): string {
   return negative ? `-${text}` : text;
 }
 
-export function eurosToCents(input: string): number | null {
+function eurosToCents(input: string): number | null {
   const cleaned = input.replace(/[\s  ]/g, "").replace(",", ".");
   if (cleaned === "") return null;
   if (!/^-?\d+(\.\d{0,2})?$/.test(cleaned)) return null;
@@ -74,11 +74,12 @@ export type GridForm = {
   fields: Record<string, string>;
 };
 
-export function readGridForm(formData: FormData): GridForm {
+export function readGridForm(formData: FormData, base: PriceGrid): GridForm {
   const fields: Record<string, string> = {};
-  const raw: Record<string, unknown> = {};
+  const raw: Record<string, unknown> = { ...base };
 
   for (const key of EURO_FIELDS) {
+    if (!formData.has(key)) continue;
     const cents = eurosToCents(text(formData, key));
     if (cents === null) {
       fields[key] = "Enter an amount in euros, e.g. 2000 or 2000.50.";
@@ -88,6 +89,7 @@ export function readGridForm(formData: FormData): GridForm {
   }
 
   for (const key of COUNT_FIELDS) {
+    if (!formData.has(key)) continue;
     const value = text(formData, key);
     if (!/^\d+$/.test(value)) {
       fields[key] = "Enter a whole number.";
@@ -96,19 +98,23 @@ export function readGridForm(formData: FormData): GridForm {
     raw[key] = Number(value);
   }
 
-  const discountEnteredPositive = eurosToCents(text(formData, "noPhotoCents"));
-  if (discountEnteredPositive === null || discountEnteredPositive < 0) {
-    fields.noPhotoCents = "Enter the discount as a positive amount.";
-  } else {
-    raw.noPhotoCents = -discountEnteredPositive;
+  if (formData.has("noPhotoCents")) {
+    const discountEnteredPositive = eurosToCents(text(formData, "noPhotoCents"));
+    if (discountEnteredPositive === null || discountEnteredPositive < 0) {
+      fields.noPhotoCents = "Enter the discount as a positive amount.";
+    } else {
+      raw.noPhotoCents = -discountEnteredPositive;
+    }
   }
 
-  raw.cappedOffers = formData
-    .getAll("cappedOffers")
-    .filter((value): value is string => typeof value === "string")
-    .filter((value): value is PriceOffer =>
-      CAPPABLE_OFFERS.includes(value as PriceOffer),
-    );
+  if (formData.has("cappedOffers")) {
+    raw.cappedOffers = formData
+      .getAll("cappedOffers")
+      .filter((value): value is string => typeof value === "string")
+      .filter((value): value is PriceOffer =>
+        CAPPABLE_OFFERS.includes(value as PriceOffer),
+      );
+  }
 
   if (Object.keys(fields).length > 0) return { grid: null, fields };
 

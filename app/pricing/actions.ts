@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/accounts";
 import { db, priceGrids } from "@/lib/db";
 
+import { getPriceGrid } from "../queries";
 import { readGridForm } from "./form";
 import type { PriceGridState } from "./state";
 
@@ -19,7 +20,7 @@ export async function savePriceGridAction(
 ): Promise<PriceGridState> {
   const owner = await requireUser();
 
-  const { grid, fields } = readGridForm(formData);
+  const { grid, fields } = readGridForm(formData, await getPriceGrid(owner));
   if (grid === null) {
     return { error: null, fields, saved: false };
   }
