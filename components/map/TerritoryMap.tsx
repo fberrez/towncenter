@@ -320,19 +320,24 @@ function targetRadius(factor: number): ExpressionSpecification {
 /** Fill: the accent, except for what has left play. */
 function targetColor(palette: MapPalette): ExpressionSpecification {
   return [
-    "match",
-    ["get", "rank"],
-    1,
-    palette.ranks[0],
-    2,
-    palette.ranks[1],
-    3,
-    palette.ranks[2],
-    4,
-    palette.ranks[3],
-    5,
-    palette.ranks[4],
-    palette.text3,
+    "case",
+    ["==", ["get", "state"], "taken"],
+    palette.success,
+    [
+      "match",
+      ["get", "rank"],
+      1,
+      palette.ranks[0],
+      2,
+      palette.ranks[1],
+      3,
+      palette.ranks[2],
+      4,
+      palette.ranks[3],
+      5,
+      palette.ranks[4],
+      palette.text3,
+    ],
   ];
 }
 
@@ -344,8 +349,6 @@ function targetColor(palette: MapPalette): ExpressionSpecification {
 function targetStroke(palette: MapPalette): ExpressionSpecification {
   return [
     "case",
-    ["==", ["get", "state"], "taken"],
-    palette.success,
     ["==", ["get", "state"], "withdrawn"],
     palette.failure,
     ["==", ["get", "selected"], true],
@@ -562,8 +565,6 @@ function installLayers(map: MapLibreMap, palette: MapPalette): void {
         // and the stroke is what keeps them countable.
         "circle-stroke-width": [
           "case",
-          ["==", ["get", "state"], "taken"],
-          2.5,
           ["==", ["get", "state"], "withdrawn"],
           1.5,
           ["==", ["get", "selected"], true],
