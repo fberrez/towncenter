@@ -32,12 +32,22 @@ export const DEFAULT_PRICE_GRID: PriceGrid = {
   fewReviewsForBase: 40, // below this review count, only the base tier is defensible
 };
 
-// an amount in cents: integer, non-negative, not absurd.
+// A grid is the user's call, not the product's. The only bars are the ones
+// without which the arithmetic stops being exact: whole cents, not negative,
+// and small enough that `price + horizon * recurring` stays a safe integer.
+const CENTS_LIMIT = 1_000_000_000_000;
+
 const cents = z
   .number()
   .int("Amounts are in whole cents — no decimals.")
-  .min(0)
-  .max(100_000_000);
+  .min(0, "An amount cannot be negative.")
+  .max(CENTS_LIMIT);
+
+const count = z
+  .number()
+  .int("Whole numbers only.")
+  .min(0, "This cannot be negative.")
+  .max(CENTS_LIMIT);
 
 const CAPPABLE_OFFERS = [
   "base",
@@ -57,7 +67,11 @@ export const PRICE_GRID_SCHEMA = z
     perExtraAddressCents: cents,
     extraAddressCapCents: cents,
     bookingIntegrationCents: cents,
-    noPhotoCents: z.number().int().min(-100_000_000).max(0), // a discount
+    noPhotoCents: z
+      .number()
+      .int()
+      .min(-CENTS_LIMIT)
+      .max(0, "A discount is stored as zero or less."),
 
     floorCents: cents,
     ceilingCents: cents,
@@ -66,19 +80,11 @@ export const PRICE_GRID_SCHEMA = z
     recurringBaseCents: cents,
     recurringPerExtraAddressCents: cents,
     recurringCapCents: cents,
-    valueHorizonMonths: z.number().int().min(1).max(120),
+    valueHorizonMonths: count,
 
-    maxAddressesInGrid: z.number().int().min(1).max(1_000),
-    complexSiteMinPages: z.number().int().min(1).max(10_000),
-    fewReviewsForBase: z.number().int().min(0).max(1_000_000),
-  })
-  .refine((g) => g.ceilingCents >= g.floorCents, {
-    message: "The ceiling cannot sit below the floor.",
-    path: ["ceilingCents"],
-  })
-  .refine((g) => g.recurringCapCents >= g.recurringBaseCents, {
-    message: "The monthly cap cannot sit below the monthly base.",
-    path: ["recurringCapCents"],
+    maxAddressesInGrid: count,
+    complexSiteMinPages: count,
+    fewReviewsForBase: count,
   });
 
 // a damaged row falls back to the default rather than making prices disappear.

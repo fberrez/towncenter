@@ -1,138 +1,624 @@
-/* ==========================================================================
-   THE PRICE GRID SCREEN.
-
-   A configuration form, not a field tool: it is read sitting down, on a wide
-   screen, and has no reason to fill the width. One bounded reading column,
-   stacked panels, nothing floating.
-
-   Widths are in `ch`, not pixels. A hint under a field is running text: past
-   ~70 characters per line the eye loses the next one. Bounding it in `ch`
-   holds that regardless of the reader's font size.
-   ========================================================================== */
-
 .pricing {
-  max-width: 78ch;
+  position: relative;
+  z-index: 1;
+  container-type: inline-size;
   margin: 0 auto;
-  padding: var(--space-6) var(--space-4) var(--space-7);
+  padding: var(--space-5) var(--space-4) var(--space-7);
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
 }
 
 .pricing__head {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  max-width: 72rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.pricing__head-act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin-left: auto;
+}
+
+.pricing__back {
+  color: var(--text-3);
+}
+
+.pricing__back:hover {
+  color: var(--text-1);
+}
+
+.pricing__layout {
+  display: block;
+}
+
+.pricing__stage {
+  display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  min-width: 0;
+  min-height: min(38rem, calc(100svh - 11rem));
+  padding: var(--space-6) var(--space-4);
 }
 
-.pricing__head p {
-  max-width: 68ch;
+.pricing__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--radius-3);
+  background: var(--surface-2);
+}
+
+.pricing__tab {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 8.5rem;
+  border: 0;
+  border-radius: var(--radius-2);
+  background: transparent;
   color: var(--text-2);
+  padding: var(--space-2) var(--space-4);
+  min-height: var(--touch-target);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background var(--duration-hover) var(--curve),
+    color var(--duration-hover) var(--curve);
 }
 
-.pricing__intro {
-  max-width: 68ch;
+.pricing__tab-name {
+  font-style: normal;
+  color: var(--text-4);
+}
+
+.pricing__tab-value {
+  font-weight: 500;
+  font-size: 0.875rem;
   color: var(--text-2);
-  margin-bottom: var(--space-3);
+  min-width: 6.5ch;
+  text-align: center;
 }
 
-/* --- The worked sample: two columns when there is room, one otherwise ----- */
+.pricing__tab:hover {
+  background: var(--surface-3);
+}
 
-/* A media query would measure the VIEWPORT, not this block: a 400 px panel on
-   a 1440 px screen would still get the "wide" layout and crush the columns to
-   zero. The query therefore runs on the CONTAINER. */
-.pricing__sample {
-  container-type: inline-size;
+.pricing__tab:hover .pricing__tab-value {
+  color: var(--text-1);
+}
+
+.pricing__tab[aria-pressed="true"] {
+  background: var(--surface-1);
+}
+
+.pricing__tab[aria-pressed="true"] .pricing__tab-value {
+  color: var(--text-1);
+}
+
+.pricing__tab[aria-pressed="true"] .pricing__tab-name {
+  color: var(--accent-text);
+}
+
+.pricing__tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pricing__when {
+  width: 54ch;
+  max-width: 100%;
+  height: calc(3 * 1.55em);
+  margin: 0;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--text-3);
+}
+
+.pricing__rig {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 40rem;
+  min-height: 6.5rem;
+}
+
+.pricing__arrow {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-  margin: var(--space-4) 0 0;
+  place-items: center;
+  flex: none;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid transparent;
+  border-radius: var(--radius-dot);
+  background: transparent;
+  color: var(--text-4);
+  cursor: pointer;
+  transition:
+    color var(--duration-hover) var(--curve),
+    border-color var(--duration-hover) var(--curve);
 }
 
-@container (min-width: 44rem) {
-  .pricing__sample {
-    grid-template-columns: 1fr 1fr;
+.pricing__arrow:hover {
+  color: var(--text-1);
+  border-color: var(--border-1);
+}
+
+.pricing__arrow:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pricing__arrow[data-next] svg {
+  transform: rotate(180deg);
+}
+
+.pricing__slot {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.pricing__big {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2) var(--space-2);
+  border-bottom: 2px solid var(--border-2);
+  cursor: text;
+  transition: border-color var(--duration-hover) var(--curve);
+  animation: step-in var(--duration-short) var(--curve);
+}
+
+.pricing__big:focus-within {
+  border-bottom-color: var(--accent);
+}
+
+.pricing__big[data-off] {
+  display: none;
+}
+
+.pricing__stage[data-way="back"] .pricing__big {
+  animation-name: step-in-back;
+}
+
+.pricing__big-input[data-typing] {
+  animation: figure-shake 160ms var(--curve);
+}
+
+.pricing__slot[data-smashed] {
+  animation: figure-smash var(--duration-short) var(--curve);
+}
+
+.pricing__slot[data-smashed] .pricing__big {
+  animation:
+    step-in var(--duration-short) var(--curve),
+    figure-smash-ink var(--duration-medium) var(--curve);
+}
+
+.pricing__layout[data-smash="a"] .quote__toggle,
+.pricing__layout[data-smash="b"] .quote__toggle {
+  animation: quote-pop var(--duration-short) var(--curve);
+}
+
+.pricing__layout[data-smash="a"] .quote__toggle-sum,
+.pricing__layout[data-smash="b"] .quote__toggle-sum {
+  animation: quote-ink var(--duration-medium) var(--curve);
+}
+
+@keyframes quote-pop {
+  0% {
+    transform: scale(1);
+    border-color: var(--border-1);
+  }
+  40% {
+    transform: scale(1.035);
+    border-color: var(--accent);
+  }
+  100% {
+    transform: scale(1);
+    border-color: var(--border-1);
   }
 }
 
-.pricing__sample dt {
+@keyframes quote-ink {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes figure-shake {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  30% {
+    transform: translateX(-1.5px) scale(1.014);
+  }
+  60% {
+    transform: translateX(1.5px) scale(1.014);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes figure-smash {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes figure-smash-ink {
+  0% {
+    border-bottom-color: var(--accent);
+  }
+  40% {
+    border-bottom-color: var(--accent);
+  }
+  100% {
+    border-bottom-color: var(--border-2);
+  }
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateX(14%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes step-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-14%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.pricing__big-input {
+  width: 8ch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  color: var(--text-1);
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: clamp(2.4rem, 1.4rem + 4vw, 3.75rem);
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.pricing__big-input:focus {
+  outline: none;
+}
+
+.pricing__big-input[aria-invalid] {
+  color: var(--failure-text);
+}
+
+.pricing__big-unit {
   color: var(--text-3);
-  margin-bottom: var(--space-2);
-}
-
-.pricing__sample dd {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.pricing__sample dd p {
-  color: var(--text-2);
-}
-
-/* --- The form ------------------------------------------------------------ */
-
-.pricing__form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.pricing__offers {
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-2);
-  padding: var(--space-4);
-  margin-top: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.pricing__offers legend {
-  color: var(--text-3);
-  padding: 0 var(--space-2);
-}
-
-.pricing__offers p {
-  color: var(--text-2);
-  max-width: 64ch;
-  margin-bottom: var(--space-2);
-}
-
-.pricing__cell {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
+  font-family: var(--typeface-mono), ui-monospace, Menlo, monospace;
+  font-size: clamp(1.2rem, 0.8rem + 1.6vw, 1.75rem);
+  font-weight: 400;
 }
 
 .pricing__actions {
   display: flex;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
+  gap: var(--space-3);
+}
+
+.pricing__save {
+  position: relative;
+}
+
+.pricing__save:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: save-ready var(--duration-ripple) var(--curve);
+}
+
+@keyframes save-ready {
+  from {
+    box-shadow: 0 0 0 0 var(--accent-veil);
+  }
+  to {
+    box-shadow: 0 0 0 12px transparent;
+  }
+}
+
+.pricing__witness {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  left: var(--space-4);
+  z-index: 30;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: var(--space-2);
+  margin-left: auto;
+  max-width: 23rem;
+  max-height: calc(100svh - 2 * var(--space-4));
+}
+
+.quote__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  min-height: var(--touch-target);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-dot);
+  background: var(--surface-1);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.07);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--duration-hover) var(--curve);
+}
+
+.quote__toggle:hover {
+  border-color: var(--border-2);
+}
+
+.quote__toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.quote__toggle-who {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.quote__toggle-sum {
+  margin-left: auto;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: var(--accent-text);
+}
+
+.quote__caret {
+  flex: none;
+  color: var(--text-3);
+  transition: transform var(--duration-short) var(--curve);
+}
+
+.pricing__witness[data-open] .quote__caret {
+  transform: rotate(180deg);
+}
+
+.pricing__witness[data-stale] .quote__toggle-sum,
+.pricing__witness[data-stale] .quote__amount {
+  opacity: 0.55;
+}
+
+.quote {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: var(--space-5);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.1);
+  animation: quote-rise var(--duration-short) var(--curve);
+}
+
+@keyframes quote-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quote__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.quote__who {
+  margin: 0;
+}
+
+.quote__facts {
+  margin: var(--space-1) 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-1);
+  color: var(--text-3);
+}
+
+.quote__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.quote__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.quote__line dt,
+.quote__line dd {
+  margin: 0;
+}
+
+.quote__line[data-soft] dt,
+.quote__line[data-soft] dd {
+  color: var(--text-3);
+}
+
+.quote__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-1);
+}
+
+.quote__foot {
+  margin: var(--space-3) 0 0;
+  color: var(--text-3);
 }
 
 .pricing__refusal {
-  color: var(--accent-strong);
+  margin: 0;
+  color: var(--failure-text);
 }
 
 .pricing__confirm {
+  margin: 0;
   color: var(--text-2);
 }
 
-/* --- Reset to the default: a rare action, so quiet and explained ---------- */
-
-.pricing__reset {
-  border-top: 1px solid var(--border-1);
-  padding-top: var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  align-items: flex-start;
+.pricing__done {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 0.28);
+  animation: done-veil var(--duration-short) var(--curve);
 }
 
-.pricing__reset p {
-  color: var(--text-3);
-  max-width: 68ch;
+.pricing__done-card {
+  width: min(26rem, 100%);
+  overflow: hidden;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.22);
+  animation: done-card var(--duration-short) var(--curve);
+}
+
+.pricing__done-timer {
+  height: 3px;
+  background: var(--surface-3);
+}
+
+.pricing__done-bar {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  animation: done-countdown 5s linear forwards;
+}
+
+.pricing__done-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+}
+
+.pricing__done-body h2 {
+  margin: 0;
+}
+
+.pricing__done-body p {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.pricing__done-act {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+@keyframes done-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes done-veil {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes done-card {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pricing__reset {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
