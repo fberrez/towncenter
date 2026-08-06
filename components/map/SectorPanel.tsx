@@ -48,7 +48,7 @@ export type SectorPanelProps = {
 function nameOf(sector: ZoneRow): string {
   if (sector.label && sector.label.trim() !== "") return sector.label;
   const day = shortDate(sector.startedAt);
-  return day ? `Sector of ${day}` : "Unnamed sector";
+  return day ? `Secteur du ${day}` : "Secteur sans nom";
 }
 
 export function SectorPanel({
@@ -88,14 +88,14 @@ export function SectorPanel({
   return (
     <div className="sectors">
       <div className="sectors__head">
-        <Badge asChild><h2>Sectors</h2></Badge>
+        <Badge asChild><h2>Secteurs</h2></Badge>
         <Button
           variant={drawMode ? "primary" : "secondary"}
           size="compact"
           onClick={onDraw}
           aria-pressed={drawMode}
         >
-          {drawMode ? "Drawing armed" : "Draw"}
+          {drawMode ? "Dessin activé" : "Dessiner"}
         </Button>
       </div>
 
@@ -103,7 +103,7 @@ export function SectorPanel({
         <div className="sectors__discipline">
           <Badge asChild><p>Discipline</p></Badge>
           <p className="t-body-s">
-            You set yourself a rule: finish one sector before opening another.
+            Vous vous êtes fixé une règle : terminer un secteur avant d’en ouvrir un autre.
           </p>
           <p className="t-body-s tnum">
             {nameOf(current)} — {current.approached} / {current.surveyed} approached,
@@ -114,10 +114,10 @@ export function SectorPanel({
             value={(approachedShare ?? 0) / DISCIPLINE_THRESHOLD}
             tint="var(--text-1)"
             thickness="fine"
-            label="Progress toward the rule"
+            label="Progression vers l’objectif"
           />
           <Button variant="quiet" size="compact" onClick={() => setRuleLifted(true)}>
-            Lift the rule
+            Lever la règle
           </Button>
         </div>
       ) : null}
@@ -140,7 +140,7 @@ export function SectorPanel({
             <li>
               <div className="sector sector--ghost" aria-busy="true">
                 <span className="t-title-3 sector__ghost-name">{inProgress.name}</span>
-                <span className="t-micro sector__running">Survey running</span>
+                <span className="t-micro sector__running">Relevé en cours</span>
 
                 {/* Skeleton bars instead of the figures we do not have yet.
                     They promise nothing: the real count appears below as soon
@@ -189,23 +189,23 @@ export function SectorPanel({
                   </button>
 
                   {sector.status === "failed" ? (
-                    <span className="t-micro sector__failure">Survey interrupted</span>
+                    <span className="t-micro sector__failure">Relevé interrompu</span>
                   ) : null}
                   {sector.status === "running" ? (
-                    <span className="t-micro sector__running">Survey running</span>
+                    <span className="t-micro sector__running">Relevé en cours</span>
                   ) : null}
 
                   <Gauge
                     value={sector.hold}
                     segments={5}
                     tint="var(--text-1)"
-                    label={`Hold on ${nameOf(sector)}`}
+                    label={`Avancement de ${nameOf(sector)}`}
                   />
 
                   <span className="t-body-s sector__figures tnum">
                     {hasBeenSurveyed
                       ? `Hold ${percent(sector.hold * 100)} · ${plural(sector.surveyed, "surveyed", "surveyed")} · ${plural(sector.captures, "taken", "taken")}`
-                      : "Not surveyed yet"}
+                      : "Pas encore relevé"}
                   </span>
 
                   {sector.capturedLootCents > 0 ? (
@@ -230,7 +230,7 @@ export function SectorPanel({
                     >
                       <input type="hidden" name="id" value={sector.id} />
                       <label className="sector__field">
-                        <span className="sr-only">Sector name</span>
+                        <span className="sr-only">Nom du secteur</span>
                         <input
                           name="label"
                           className="map__input"
@@ -247,14 +247,14 @@ export function SectorPanel({
                         size="compact"
                         disabled={renamePending}
                       >
-                        {renamePending ? "…" : "Keep"}
+                        {renamePending ? "…" : "Enregistrer"}
                       </Button>
                       <Button
                         variant="quiet"
                         size="compact"
                         onClick={() => setRenaming(null)}
                       >
-                        Cancel
+                        Annuler
                       </Button>
                       <span className="t-body-s tone-3 sector__hint">
                         Clearing the field erases the name: the sector goes back to its date.
@@ -267,7 +267,7 @@ export function SectorPanel({
                         size="compact"
                         onClick={() => setRenaming(sector.id)}
                       >
-                        Rename
+                        Renommer
                       </Button>
                     </div>
                   )}

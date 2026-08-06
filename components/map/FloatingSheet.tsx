@@ -49,13 +49,13 @@ export function FloatingSheet({
       className="floating glass"
       style={{ left: `${x}px`, top: `${anchor.y}px` }}
       role="dialog"
-      aria-label={`${target.name}, preview`}
+      aria-label={`${target.name}, aperçu`}
     >
       <button
         type="button"
         className="floating__close"
         onClick={onClose}
-        aria-label="Close the preview"
+        aria-label="Fermer l’aperçu"
       >
         ×
       </button>
@@ -66,7 +66,7 @@ export function FloatingSheet({
           75009 PARIS") and repeats it in `city`. The town is only used as a
           fallback when the address is missing. */}
       <p className="t-body-s tone-2 floating__place">
-        {target.address ?? target.city ?? "Address not recorded"}
+        {target.address ?? target.city ?? "Adresse non renseignée"}
       </p>
 
       <div className="floating__figures">
@@ -79,11 +79,11 @@ export function FloatingSheet({
           size="body"
           offGrid={offGrid}
           reason={offGrid ? target.score.price.reason : null}
-          label="Spoils"
+          label="Butin"
         />
 
         <div className="floating__resistance">
-          <Badge>Resistance</Badge>
+          <Badge>Résistance</Badge>
           {/* The figure and the word, never one without the other. */}
           <span className="t-title-3 tnum floating__rate">
             {percent(target.resistancePercent)}
@@ -93,7 +93,7 @@ export function FloatingSheet({
       </div>
 
       <Button variant="primary" size="compact" onClick={onOpen} className="floating__action">
-        Open the record
+        Ouvrir la fiche
       </Button>
     </div>
   );

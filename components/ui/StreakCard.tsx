@@ -5,15 +5,15 @@ import { cx } from "./style";
 
 // Monday -> Sunday. The week starts on Monday, like the French calendar the
 // businesses live by; the interface language does not decide that.
-const INITIALS = ["M", "T", "W", "T", "F", "S", "S"] as const;
+const INITIALS = ["L", "M", "M", "J", "V", "S", "D"] as const;
 const DAY_NAMES = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+  "Dimanche",
 ] as const;
 
 /** "2026-08-03" -> "03/08". No `Date`, so no timezone risk. */
@@ -49,7 +49,7 @@ export function StreakCard({
 
   return (
     <div className={cx("streak", streak.aliveToday && "streak--alive", className)}>
-      <Badge>Streak</Badge>
+      <Badge>Série</Badge>
 
       <span className={cx(figureSize, "tnum", "streak__days")}>
         {streak.days}
@@ -61,25 +61,25 @@ export function StreakCard({
         <span className="streak__unit">d</span>
         <span className="sr-only">
           {streak.days === 0
-            ? " — no streak running"
-            : ` — ${streak.days} days in a row`}
+            ? " — aucune série en cours"
+            : ` — ${streak.days} jours d’affilée`}
         </span>
       </span>
 
       {record !== null && record > 0 ? (
-        <span className="t-body-s tone-2 tnum">Best {record} d</span>
+        <span className="t-body-s tone-2 tnum">Record : {record} j</span>
       ) : null}
 
       {streak.days === 0 ? (
         <span className="t-body-s tone-2">
           {streak.lastDay
-            ? `Last exchange on ${shortDate(streak.lastDay)}.`
-            : "No exchange on record."}
+            ? `Dernier échange le ${shortDate(streak.lastDay)}.`
+            : "Aucun échange enregistré."}
         </span>
       ) : streak.atRisk ? (
-        <span className="t-body-s tone-2">Nothing today. It holds until tonight.</span>
+        <span className="t-body-s tone-2">Rien aujourd’hui. Elle tient jusqu’à ce soir.</span>
       ) : (
-        <span className="t-body-s tone-2">Held today.</span>
+        <span className="t-body-s tone-2">Maintenue aujourd’hui.</span>
       )}
 
       {week ? (
@@ -95,7 +95,7 @@ export function StreakCard({
                 {initial}
               </span>
               <span className="sr-only">
-                {DAY_NAMES[index]}: {week[index] ? "held" : "nothing"}
+                {DAY_NAMES[index]} : {week[index] ? "maintenue" : "rien"}
               </span>
             </span>
           ))}

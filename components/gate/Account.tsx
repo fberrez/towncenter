@@ -28,7 +28,7 @@ export function AccountRail({ account }: AccountRailProps) {
         {name}
       </span>
       <button type="submit" className={styles.signout}>
-        Sign out
+        Se déconnecter
       </button>
     </form>
   );
@@ -63,7 +63,7 @@ function SignOutItem() {
         disabled={pending}
         onClick={(event) => event.currentTarget.form?.requestSubmit()}
       >
-        {pending ? "Signing out…" : "Sign out"}
+        {pending ? "Déconnexion…" : "Se déconnecter"}
       </button>
     </DropdownMenuItem>
   );

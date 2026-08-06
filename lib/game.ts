@@ -35,11 +35,11 @@ export type Rank = {
 const RANK_SHAPES: readonly (Omit<Rank, "minExpectancyCents"> & {
   part: number;
 })[] = [
-  { key: "citadel", level: 5, label: "Citadel", dotPx: 20, ringPx: 2, halo: true, colorVar: "--rank-5", part: 1 },
-  { key: "stronghold", level: 4, label: "Stronghold", dotPx: 16, ringPx: 1.5, halo: false, colorVar: "--rank-4", part: 1 / 2 },
-  { key: "townhouse", level: 3, label: "Townhouse", dotPx: 13, ringPx: 0, halo: false, colorVar: "--rank-3", part: 1 / 4 },
-  { key: "counting-house", level: 2, label: "Counting House", dotPx: 10, ringPx: 0, halo: false, colorVar: "--rank-2", part: 1 / 10 },
-  { key: "stall", level: 1, label: "Stall", dotPx: 8, ringPx: 0, halo: false, colorVar: "--rank-1", part: 0 },
+  { key: "citadel", level: 5, label: "Citadelle", dotPx: 20, ringPx: 2, halo: true, colorVar: "--rank-5", part: 1 },
+  { key: "stronghold", level: 4, label: "Forteresse", dotPx: 16, ringPx: 1.5, halo: false, colorVar: "--rank-4", part: 1 / 2 },
+  { key: "townhouse", level: 3, label: "Hôtel particulier", dotPx: 13, ringPx: 0, halo: false, colorVar: "--rank-3", part: 1 / 4 },
+  { key: "counting-house", level: 2, label: "Comptoir", dotPx: 10, ringPx: 0, halo: false, colorVar: "--rank-2", part: 1 / 10 },
+  { key: "stall", level: 1, label: "Échoppe", dotPx: 8, ringPx: 0, halo: false, colorVar: "--rank-1", part: 0 },
 ];
 
 export function ranksFor(grid: PriceGrid = DEFAULT_PRICE_GRID): readonly Rank[] {
@@ -190,14 +190,14 @@ export type Tier = {
 };
 
 export const TIERS: readonly Tier[] = [
-  { level: 1, label: "Scout", floorXp: 0 },
-  { level: 2, label: "Surveyor", floorXp: 112 },
-  { level: 3, label: "Land Surveyor", floorXp: 400 },
-  { level: 4, label: "Cartographer", floorXp: 900 },
-  { level: 5, label: "Builder", floorXp: 1_800 },
-  { level: 6, label: "Steward", floorXp: 3_600 },
-  { level: 7, label: "Strategist", floorXp: 7_200 },
-  { level: 8, label: "Governor", floorXp: 14_400 },
+  { level: 1, label: "Éclaireur", floorXp: 0 },
+  { level: 2, label: "Prospecteur", floorXp: 112 },
+  { level: 3, label: "Géomètre", floorXp: 400 },
+  { level: 4, label: "Cartographe", floorXp: 900 },
+  { level: 5, label: "Bâtisseur", floorXp: 1_800 },
+  { level: 6, label: "Intendant", floorXp: 3_600 },
+  { level: 7, label: "Stratège", floorXp: 7_200 },
+  { level: 8, label: "Gouverneur", floorXp: 14_400 },
 ];
 
 export type Level = {

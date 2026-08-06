@@ -89,7 +89,7 @@ export default function RootLayout({
   return (
     // `data-theme` is an ASCII key: `dark` / `light`. Light is the default.
     <html
-      lang="en"
+      lang="fr"
       data-theme={DEFAULT_THEME}
       className={`${mono.variable} ${serif.variable}`}
       // The script below fixes `data-theme` before paint, so the server-rendered

@@ -18,7 +18,7 @@ import {
 import styles from "./onboarding.module.css";
 
 export const metadata: Metadata = {
-  title: "Setup — Towncenter",
+  title: "Configuration — Towncenter",
   robots: { index: false, follow: false },
 };
 
@@ -66,10 +66,10 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
           </Link>
 
           <div className={styles.center}>
-            <h1 className={styles.title}>Set up your territory</h1>
+            <h1 className={styles.title}>Configurez votre territoire</h1>
             <p className={styles.subtitle}>
-              Three things to do before the map becomes useful. Each one is
-              backed by a measured fact — skip any step and come back to it.
+              Trois éléments à régler avant que la carte ne devienne utile. Chacun
+              repose sur un fait mesuré : vous pouvez passer une étape et y revenir.
             </p>
 
             <StepRail facts={facts} current={step} />
@@ -86,7 +86,7 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
           </div>
 
           <div className={styles.footerRule}>
-            <span>Neighbourhood prospecting, street by street.</span>
+            <span>Prospection de quartier, rue par rue.</span>
           </div>
         </div>
 
@@ -108,9 +108,9 @@ type StepMeta = {
 
 function stepsFor(facts: OnboardingFacts): StepMeta[] {
   return [
-    { key: "key", label: "Connect Google Places", done: facts.placesKeySource !== null },
-    { key: "grid", label: "Review your price grid", done: facts.hasCustomGrid },
-    { key: "sector", label: "Survey your first sector", done: facts.sectorCount > 0 },
+    { key: "key", label: "Connecter Google Places", done: facts.placesKeySource !== null },
+    { key: "grid", label: "Vérifier votre grille tarifaire", done: facts.hasCustomGrid },
+    { key: "sector", label: "Relever votre premier secteur", done: facts.sectorCount > 0 },
   ];
 }
 
@@ -158,11 +158,11 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
       <>
         <Badge asChild><h2>Google Places</h2></Badge>
         <p className="t-body">
-          The key is provided by the server environment
-          (<code>GOOGLE_PLACES_API_KEY</code>). Nothing to do here.
+          La clé est fournie par l’environnement du serveur
+          (<code>GOOGLE_PLACES_API_KEY</code>). Vous n’avez rien à faire ici.
         </p>
         <Link href="/onboarding?step=grid" className={styles.stepLink}>
-          Continue →
+          Continuer →
         </Link>
       </>
     );
@@ -173,15 +173,15 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
       <>
         <Badge asChild><h2>Google Places</h2></Badge>
         <p className="t-body">
-          Your key is configured: <code>{facts.placesKeyMask}</code>.
+          Votre clé est configurée : <code>{facts.placesKeyMask}</code>.
         </p>
         <form action={removePlacesKeyAction} className={styles.removeForm}>
           <Button type="submit" variant="quiet" size="compact">
-            Remove the key
+            Supprimer la clé
           </Button>
         </form>
         <Link href="/onboarding?step=grid" className={styles.stepLink}>
-          Continue →
+          Continuer →
         </Link>
       </>
     );
@@ -191,23 +191,23 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
     <>
       <Badge asChild><h2>Google Places</h2></Badge>
       <p className="t-body">
-        Enrichment needs a Google Places API key. Without it, the map still
-        works — surveying, scoring and the ledger need no key at all — but no
-        business will ever get a website address, and the in-house site audit
-        has nothing to read.
+        L’enrichissement nécessite une clé d’API Google Places. Sans elle, la carte
+        fonctionne toujours — le relevé, le score et le journal n’ont besoin d’aucune
+        clé — mais aucune entreprise n’obtiendra d’adresse de site web et l’audit de
+        site interne n’aura rien à analyser.
       </p>
       <Card>
         <CardHeader>
-          <CardTitle>Your key</CardTitle>
+          <CardTitle>Votre clé</CardTitle>
         </CardHeader>
         <PlacesKeyForm />
         <p className="t-body-s tone-3">
-          Stored on this instance, used server-side only. One billed request is
-          made when you click &ldquo;Check the key&rdquo;.
+          Stockée sur cette instance et utilisée uniquement côté serveur. Une requête
+          facturée est effectuée lorsque vous cliquez sur « Vérifier la clé ».
         </p>
       </Card>
       <Link href="/onboarding?step=grid" className={styles.stepLink}>
-        Skip for now →
+        Passer cette étape →
       </Link>
     </>
   );
@@ -216,28 +216,28 @@ function KeyStep({ facts }: { facts: OnboardingFacts }) {
 function GridStep({ facts }: { facts: OnboardingFacts }) {
   return (
     <>
-      <Badge asChild><h2>Price grid</h2></Badge>
+      <Badge asChild><h2>Grille tarifaire</h2></Badge>
       <p className="t-body">
-        Every amount on the map comes from your grid: the loot on a target, the
-        treasure of a sector, the rank of a business. The default grid ships
-        with the product — one freelancer&rsquo;s real rates, a starting point.
+        Tous les montants de la carte proviennent de votre grille : le butin d’une
+        cible, le trésor d’un secteur, le rang d’une entreprise. La grille par défaut
+        est fournie avec le produit : les tarifs réels d’un indépendant, comme point de départ.
       </p>
       {facts.hasCustomGrid ? (
         <p className="t-body-s tone-2">
-          You have already saved a custom grid.
+          Vous avez déjà enregistré une grille personnalisée.
         </p>
       ) : (
         <p className="t-body-s tone-2">
-          You are on the default grid. Open the pricing screen to change it, or
-          keep the default and continue.
+          Vous utilisez la grille par défaut. Ouvrez la page de tarification pour la
+          modifier, ou conservez-la et continuez.
         </p>
       )}
       <div className={styles.stepActions}>
         <Link href="/pricing" className={styles.stepLink}>
-          Open the pricing screen
+          Ouvrir la page de tarification
         </Link>
         <Link href="/onboarding?step=sector" className={styles.stepLink}>
-          {facts.hasCustomGrid ? "Continue →" : "Keep the default grid →"}
+          {facts.hasCustomGrid ? "Continuer →" : "Conserver la grille par défaut →"}
         </Link>
       </div>
     </>
@@ -247,22 +247,22 @@ function GridStep({ facts }: { facts: OnboardingFacts }) {
 function SectorStep({ facts }: { facts: OnboardingFacts }) {
   return (
     <>
-      <Badge asChild><h2>First sector</h2></Badge>
+      <Badge asChild><h2>Premier secteur</h2></Badge>
       <p className="t-body">
-        Draw a sector on the map. It fills with every business actually
-        registered there — the French national company register knows them, and
-        it is free and key-less. Each one becomes a target carrying two numbers:
-        the loot and the resistance.
+        Dessinez un secteur sur la carte. Il se remplit de toutes les entreprises qui y
+        sont réellement enregistrées — le registre national français les connaît, et il
+        est gratuit, sans clé. Chacune devient une cible avec deux valeurs : le butin et
+        la résistance.
       </p>
       {facts.sectorCount > 0 ? (
         <p className="t-body-s tone-2">
-          You have already surveyed {facts.sectorCount} sector
+          Vous avez déjà relevé {facts.sectorCount} secteur
           {facts.sectorCount === 1 ? "" : "s"}.
         </p>
       ) : null}
       <form action={finishOnboardingAction}>
         <Button type="submit" variant="primary" fullWidth>
-          {facts.sectorCount > 0 ? "Back to the map" : "Enter the map"}
+          {facts.sectorCount > 0 ? "Retour à la carte" : "Accéder à la carte"}
         </Button>
       </form>
     </>

@@ -11,7 +11,7 @@ import { SignUp } from "./SignUpForm";
 import styles from "@/components/gate/gate.module.css";
 
 export const metadata: Metadata = {
-  title: "Create an account — Towncenter",
+  title: "Créer un compte — Towncenter",
   robots: { index: false, follow: false },
 };
 
@@ -29,11 +29,11 @@ export default async function SignUpPage() {
   if (!state.open) {
     return (
       <Gate
-        title="Accounts are closed"
-        subtitle="This instance is not taking new accounts right now."
+        title="Les comptes sont fermés"
+        subtitle="Cette instance n’accepte pas de nouveaux comptes actuellement."
         toggle={
           <Link href="/login" className={styles.link}>
-            Back to sign in
+            Retour à la connexion
           </Link>
         }
       >
@@ -44,18 +44,18 @@ export default async function SignUpPage() {
 
   return (
     <Gate
-      title={state.isFirstAccount ? "Claim this instance" : "Create your account"}
+      title={state.isFirstAccount ? "Prendre possession de cette instance" : "Créer votre compte"}
       subtitle={
         state.isFirstAccount
-          ? "You are the first here. This account will own the territory."
-          : "One account, one territory. Nothing is shared between them."
+          ? "Vous êtes la première personne ici. Ce compte possédera le territoire."
+          : "Un compte, un territoire. Rien n’est partagé entre eux."
       }
       toggle={
         state.isFirstAccount ? null : (
           <>
-            Already have an account?{" "}
+            Vous avez déjà un compte ?{" "}
             <Link href="/login" className={styles.link}>
-              Sign in
+              Se connecter
             </Link>
           </>
         )

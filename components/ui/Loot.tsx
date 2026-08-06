@@ -57,17 +57,17 @@ export function Loot({
 
       {offGrid ? (
         <>
-          <span className="loot__off-grid">Off-grid</span>
+          <span className="loot__off-grid">Hors grille</span>
           <span className="t-body-s tone-2">
-            {nonBreaking(reason ?? "The work goes beyond the default offer: to price by hand.")}
+            {nonBreaking(reason ?? "Le travail dépasse l’offre par défaut : à chiffrer manuellement.")}
           </span>
         </>
       ) : unknown ? (
         <>
-          <span className={cx(sizeClass, "tone-2")} aria-label="amount unknown">
+          <span className={cx(sizeClass, "tone-2")} aria-label="montant inconnu">
             —
           </span>
-          <span className="t-body-s tone-2">{nonBreaking(reason ?? "Not priced")}</span>
+          <span className="t-body-s tone-2">{nonBreaking(reason ?? "Non chiffré")}</span>
         </>
       ) : (
         <>
@@ -83,10 +83,10 @@ export function Loot({
           Number.isFinite(recurringCents) ? (
             <span className="t-body-s tnum">
               <span className="loot__recurring">
-                {recurringIncluded ? "incl. " : "+ "}
+                {recurringIncluded ? "dont " : "+ "}
                 {formatEuros(recurringCents, { decimals: "never" })}
               </span>
-              <span className="loot__recurring-unit">/month</span>
+              <span className="loot__recurring-unit">/mois</span>
             </span>
           ) : null}
           {reason ? <span className="t-body-s tone-2">{nonBreaking(reason)}</span> : null}

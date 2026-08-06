@@ -87,9 +87,9 @@ export type TargetSheetProps = {
 type Tab = "approach" | "facts" | "log";
 
 const TABS: readonly { key: Tab; label: string }[] = [
-  { key: "approach", label: "Approach" },
-  { key: "facts", label: "Facts" },
-  { key: "log", label: "Log" },
+  { key: "approach", label: "Approche" },
+  { key: "facts", label: "Faits" },
+  { key: "log", label: "Journal" },
 ];
 
 /** Steps reachable from a given state. `withdrawn` stays available regardless. */
@@ -459,7 +459,7 @@ export function TargetSheet({
   const upcoming = nextStepsFor(target.state)[0] ?? null;
 
   return (
-    <aside className="sheet" aria-label={`Record for ${target.name}`}>
+    <aside className="sheet" aria-label={`Fiche de ${target.name}`}>
       <header className="sheet__head">
         <div className="sheet__head-top">
           <RarityTag
@@ -479,7 +479,7 @@ export function TargetSheet({
             size="compact"
             className="sheet__close"
             onClick={onClose}
-            aria-label="Close the record"
+            aria-label="Fermer la fiche"
           >
             ✕
           </Button>
@@ -565,7 +565,7 @@ export function TargetSheet({
         ) : null}
       </header>
 
-      <div className="sheet__tabs" role="tablist" aria-label="Record sections">
+      <div className="sheet__tabs" role="tablist" aria-label="Sections de la fiche">
         {TABS.map((item) => (
           <button
             key={item.key}
@@ -600,7 +600,7 @@ export function TargetSheet({
           >
             {offGrid ? (
               <p className="sheet__alert t-body">
-                <strong>Off-grid.</strong> {price.reason}
+                <strong>Hors grille.</strong> {price.reason}
                 {" These are not zero-euro targets: they are the ones where the work goes "}
                 beyond the default offer. They are priced by hand, after a visit.
                 <Source sourceKey="computed" />
@@ -724,7 +724,7 @@ export function TargetSheet({
                       row: on the button row nothing at rest told which of the
                       three words was clickable. */}
                   <div className="sheet__exits">
-                    <Badge>Exits</Badge>
+                    <Badge>Issues</Badge>
                     <div className="sheet__exit-actions">
                       {target.state === "withdrawn" ? null : (
                         <Button
@@ -757,7 +757,7 @@ export function TargetSheet({
 
                   <ConfirmDialog
                     open={confirmUndo && lastEvent !== null}
-                    title="Undo the last fact?"
+                    title="Annuler le dernier fait ?"
                     onCancel={() => setConfirmUndo(false)}
                     className="confirm-dialog__card--danger"
                   >
@@ -773,7 +773,7 @@ export function TargetSheet({
                         {lastEvent.note ? (
                           <p className="t-body-s tone-2">{lastEvent.note}</p>
                         ) : null}
-                        <p className="t-body-s tone-3">This action cannot be undone.</p>
+                        <p className="t-body-s tone-3">Cette action est irréversible.</p>
                         <form action={undo} className="sheet__actions">
                           <input type="hidden" name="id" value={target.id} />
                           <Button
@@ -782,7 +782,7 @@ export function TargetSheet({
                             disabled={inProgress}
                             onClick={() => setConfirmUndo(false)}
                           >
-                            Keep
+                            Conserver
                           </Button>
                           <Button type="submit" variant="secondary" disabled={inProgress}>
                             {undoPending ? "…" : "Erase this fact"}
@@ -794,14 +794,14 @@ export function TargetSheet({
 
                   <ConfirmDialog
                     open={input === "taken"}
-                    title="Record the take?"
+                    title="Enregistrer la signature ?"
                     onCancel={() => setInput(null)}
                   >
                     <form action={advance} className="sheet__entry-input">
                       <input type="hidden" name="id" value={target.id} />
                       <input type="hidden" name="to" value="taken" />
                       <label className="sheet__field">
-                        <Badge>Amount actually signed</Badge>
+                        <Badge>Montant réellement signé</Badge>
                         {/* The field starts EMPTY: the spoils are what is in
                             play, the take is what was banked. Prefilling with
                             the estimate would report revenue nobody signed. */}
@@ -823,7 +823,7 @@ export function TargetSheet({
                         </span>
                       </label>
                       <label className="sheet__field">
-                        <Badge>What was said</Badge>
+                        <Badge>Ce qui a été dit</Badge>
                         <textarea
                           name="note"
                           rows={2}
@@ -838,7 +838,7 @@ export function TargetSheet({
                           disabled={inProgress}
                           onClick={() => setInput(null)}
                         >
-                          Cancel
+                          Annuler
                         </Button>
                         <Button type="submit" variant="primary" disabled={inProgress}>
                           {advancePending ? "…" : "Record the take"}
@@ -965,7 +965,7 @@ export function TargetSheet({
           >
             <section className="sheet__section">
               <div className="sheet__section-head">
-                <Badge asChild><h3>The five facts</h3></Badge>
+                <Badge asChild><h3>Les cinq faits</h3></Badge>
                 {enrichButton}
               </div>
               <div className="sheet__facts panel">
@@ -999,7 +999,7 @@ export function TargetSheet({
             </section>
 
             <section className="sheet__section">
-              <Badge asChild><h3>The record</h3></Badge>
+              <Badge asChild><h3>La fiche</h3></Badge>
               <div className="panel sheet__fields">
                 {main.map(fieldRow)}
               </div>
@@ -1027,7 +1027,7 @@ export function TargetSheet({
             {/* The factor product, scrolled to from the head figure. */}
             <section className="sheet__section" ref={calculationRef}>
               <div className="sheet__section-head">
-                <Badge asChild><h3>Where this figure comes from</h3></Badge>
+                <Badge asChild><h3>Origine de ce chiffre</h3></Badge>
                 {/* None of this was surveyed; all of it is derived. */}
                 <Sources keys={["computed"]} />
               </div>
@@ -1080,7 +1080,7 @@ export function TargetSheet({
             {/* A pictogram alone is a riddle: the legend carries the full name,
                 what the source provides, and its address when it has one. */}
             <section className="sheet__section">
-              <Badge asChild><h3>Where all of this comes from</h3></Badge>
+                <Badge asChild><h3>Origine de toutes ces données</h3></Badge>
               <SourceLegend keys={citedSources} className="panel" />
               <p className="t-body-s tone-3">
                 Only the sources this record actually uses are listed. A missing one is
@@ -1100,12 +1100,12 @@ export function TargetSheet({
           >
             <section className="sheet__section">
               <div className="sheet__section-head">
-                <Badge asChild><h3>The log</h3></Badge>
+                <Badge asChild><h3>Le journal</h3></Badge>
                 {/* The only source nobody can refresh on your behalf. */}
                 <Sources keys={["log"]} />
               </div>
               {log.length === 0 ? (
-                <p className="t-body-s tone-2">Nothing has been said yet.</p>
+                <p className="t-body-s tone-2">Rien n’a encore été consigné.</p>
               ) : (
                 <ol className="sheet__log">
                   {log.map((entry) => (

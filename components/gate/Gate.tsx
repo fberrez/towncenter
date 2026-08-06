@@ -45,7 +45,7 @@ export function Gate({ title, subtitle, children, toggle }: GateProps) {
           </div>
 
           <div className={styles.footerRule}>
-            <span>Neighbourhood prospecting, street by street.</span>
+            <span>Prospection de quartier, rue par rue.</span>
           </div>
         </div>
 

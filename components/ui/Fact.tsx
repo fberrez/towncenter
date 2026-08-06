@@ -57,7 +57,7 @@ export function Fact({
             value={empty ? 0 : bounded / 100}
             tint={tint}
             delayIndex={delayIndex}
-            label={empty ? `${name}: not recorded` : `${name}: ${bounded} out of 100`}
+            label={empty ? `${name} : non renseigné` : `${name} : ${bounded} sur 100`}
           />
         </span>
         <span className="fact__value tnum" aria-hidden="true">
@@ -66,7 +66,7 @@ export function Fact({
       </div>
 
       {empty ? (
-        <p className="t-body-s fact__verbatim">Not recorded — excluded from the calculation.</p>
+        <p className="t-body-s fact__verbatim">Non renseigné — exclu du calcul.</p>
       ) : verbatim && verbatim.length > 0 ? (
         <p className="t-body fact__verbatim">{nonBreaking(verbatim.join(" · "))}</p>
       ) : null}
@@ -78,7 +78,7 @@ export function Fact({
         <p className="t-body-s fact__source">
           <Sources keys={provenance} />
           {nonBreaking([sourceNames, surveyedOn].filter(Boolean).join(" · "))}
-          {stale ? <span className="fact__stale"> · to refresh</span> : null}
+          {stale ? <span className="fact__stale"> · à actualiser</span> : null}
         </p>
       ) : null}
     </div>

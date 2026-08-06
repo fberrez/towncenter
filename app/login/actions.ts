@@ -24,22 +24,22 @@ import { PASSWORD_MAX, checkPasswordShape } from "@/lib/password";
 import type { SignInState, SignupFormState } from "./state";
 
 const signInSchema = z.object({
-  email: z.string().min(1, "Enter your email address.").max(320),
-  password: z.string().min(1, "Enter your password.").max(PASSWORD_MAX),
+  email: z.string().min(1, "Saisissez votre adresse e-mail.").max(320),
+  password: z.string().min(1, "Saisissez votre mot de passe.").max(PASSWORD_MAX),
   next: z.string().max(2048).optional(),
 });
 
 const signUpSchema = z.object({
   email: z
     .string()
-    .min(1, "Enter your email address.")
+    .min(1, "Saisissez votre adresse e-mail.")
     .max(320)
     // rejects the empty string and the obvious shapes; it does not try to
     // validate an address for real, the only test that counts is that mail lands
     .refine((value) => z.string().email().safeParse(value.trim()).success, {
-      message: "That is not a readable email address.",
+      message: "Cette adresse e-mail n’est pas valide.",
     }),
-  password: z.string().min(1, "Choose a password.").max(PASSWORD_MAX),
+  password: z.string().min(1, "Choisissez un mot de passe.").max(PASSWORD_MAX),
   displayName: z.string().max(120).optional(),
 });
 
@@ -98,7 +98,7 @@ export async function signInAction(
 
   if (!parsed.success) {
     return {
-      error: parsed.error.issues[0]?.message ?? "Entry refused.",
+      error: parsed.error.issues[0]?.message ?? "Saisie refusée.",
       email,
     };
   }
@@ -107,7 +107,7 @@ export async function signInAction(
   // after ten deliberate failures on an invented address
   if (!loginAttemptAllowed(parsed.data.email)) {
     return {
-      error: "Too many attempts on this address. Try again in fifteen minutes.",
+      error: "Trop de tentatives pour cette adresse. Réessayez dans quinze minutes.",
       email,
     };
   }
@@ -120,7 +120,7 @@ export async function signInAction(
     // user's. Said without revealing what is missing, and logged, because
     // otherwise nobody will ever know why.
     console.error("[signin]", error);
-    return { error: "The door is not configured on this server.", email };
+    return { error: "La connexion n’est pas configurée sur ce serveur.", email };
   }
 
   if (!account) {
@@ -129,7 +129,7 @@ export async function signInAction(
     // apart turns the form into an oracle for who uses this instance;
     // verifyCredentials also spends the same time in both cases, otherwise the
     // response latency would say what the message does not.
-    return { error: "Wrong email or password.", email };
+    return { error: "Adresse e-mail ou mot de passe incorrect.", email };
   }
 
   registerLoginSuccess(parsed.data.email);
@@ -187,7 +187,7 @@ export async function signUpAction(
     });
   } catch (error) {
     console.error("[signup]", error);
-    return { ...base, error: "Account not created. Try again." };
+    return { ...base, error: "Le compte n’a pas été créé. Réessayez." };
   }
 
   if (!result.ok) {

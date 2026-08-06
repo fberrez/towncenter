@@ -42,13 +42,13 @@ export function ClusterCard({ cluster, targets, onOpen, onTarget, className }: C
       <article>
         <div className={styles.cluster__head}>
           <div className={styles.cluster__titles}>
-            <Badge>Cluster</Badge>
+            <Badge>Groupe</Badge>
             {/* The cluster head is the business you would start the round with:
                 the best expectancy still free. It names the cluster, which avoids
                 inventing a name. */}
             <span className={`t-title-3 ${styles.cluster__name}`}>{cluster.topName}</span>
             <span className={`t-body-s ${styles.cluster__place}`}>
-              {metric.engaged} business{metric.engaged > 1 ? "es" : ""} within{" "}
+              {metric.engaged} entreprise{metric.engaged > 1 ? "s" : ""} dans un rayon de{" "}
               {metric.radiusMeters} m
             </span>
           </div>
@@ -57,10 +57,10 @@ export function ClusterCard({ cluster, targets, onOpen, onTarget, className }: C
             <Loot
               cents={metric.lootCents}
               size="title"
-              label="Spoils to take"
+              label="Butin à obtenir"
               reason={
                 metric.offGrid > 0
-                  ? `+ ${metric.offGrid} off-grid, to price`
+                  ? `+ ${metric.offGrid} hors grille, à chiffrer`
                   : null
               }
             />
@@ -74,12 +74,12 @@ export function ClusterCard({ cluster, targets, onOpen, onTarget, className }: C
             already has one. */}
         {metric.engaged > 0 ? (
           <div className={styles.cluster__hold}>
-            <Badge>Hold</Badge>
+            <Badge>Avancement</Badge>
             <Gauge
               value={metric.hold}
               segments={5}
               tint="var(--text-1)"
-              name={`${metric.captures} taken of ${metric.engaged}`}
+              name={`${metric.captures} obtenue${metric.captures > 1 ? "s" : ""} sur ${metric.engaged}`}
               valueText={percent(Math.round(metric.hold * 100))}
             />
           </div>
@@ -114,7 +114,7 @@ export function ClusterCard({ cluster, targets, onOpen, onTarget, className }: C
                   </span>
                   <span className={`t-body-s tnum ${styles["cluster__member-loot"]}`}>
                     {offGrid
-                      ? "off-grid"
+                      ? "hors grille"
                       : formatEuros(member.score.expectancyCents, { decimals: "never" })}
                   </span>
                 </>
@@ -139,21 +139,21 @@ export function ClusterCard({ cluster, targets, onOpen, onTarget, className }: C
           </ul>
         ) : (
           <p className={`t-body ${styles.cluster__rest}`}>
-            Nothing left to take here. {metric.captures} taken
-            {metric.withdrawals > 0 ? `, ${metric.withdrawals} withdrawn` : ""}.
+            Plus rien à obtenir ici. {metric.captures} obtenue{metric.captures > 1 ? "s" : ""}
+            {metric.withdrawals > 0 ? `, ${metric.withdrawals} abandonnée${metric.withdrawals > 1 ? "s" : ""}` : ""}.
           </p>
         )}
   
         {rest > 0 ? (
           <p className={`t-body-s ${styles.cluster__rest}`}>
-            and {rest} more business{rest > 1 ? "es" : ""} to take
+            et {rest} entreprise{rest > 1 ? "s" : ""} de plus à obtenir
           </p>
         ) : null}
   
         {onOpen ? (
           <div className={styles.cluster__actions}>
             <Button variant="secondary" onClick={onOpen} fullWidth>
-              Open the cluster
+              Ouvrir le groupe
             </Button>
           </div>
         ) : null}

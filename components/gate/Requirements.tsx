@@ -39,12 +39,12 @@ export function Requirements({ password, email }: RequirementsProps) {
   const requirements: Requirement[] = [
     {
       key: "length",
-      label: `${PASSWORD_MIN_CLIENT} characters or more`,
+      label: `${PASSWORD_MIN_CLIENT} caractères ou plus`,
       met: password.length >= PASSWORD_MIN_CLIENT,
     },
     {
       key: "email",
-      label: "Does not contain your email address",
+      label: "Ne contient pas votre adresse e-mail",
       met:
         password.length > 0 &&
         (local.length < 4 || !password.toLowerCase().includes(local)),
@@ -66,7 +66,7 @@ export function Requirements({ password, email }: RequirementsProps) {
           {/* The label alone tells a screen reader nothing: the glyph carries
               the state, and a shape does not announce itself. */}
           <span className={styles.offScreen}>
-            {requirement.met ? " — met" : " — not met yet"}
+            {requirement.met ? " — satisfait" : " — pas encore satisfait"}
           </span>
         </li>
       ))}

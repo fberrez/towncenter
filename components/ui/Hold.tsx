@@ -37,14 +37,14 @@ export function Hold({
     // `glass` and not an opaque surface: a floating hold sits ON the map, over
     // something that moves.
     <div className={cx("hold", "glass", floating && "hold--floating", className)}>
-      <Badge>Hold</Badge>
+      <Badge>Avancement</Badge>
 
       <span className="hold__rate tnum">
         {hasSurvey ? percent(rate) : "—"}
         <span className="sr-only">
           {hasSurvey
-            ? ` hold on ${sector}`
-            : `, sector ${sector} not surveyed yet`}
+            ? ` avancement de ${sector}`
+            : `, secteur ${sector} pas encore relevé`}
         </span>
       </span>
 
@@ -52,13 +52,13 @@ export function Hold({
         value={ratio}
         segments={5}
         tint="var(--text-1)"
-        label={`Hold on ${sector}`}
+        label={`Avancement de ${sector}`}
       />
 
       <span className="t-body-s hold__detail tnum">
         {hasSurvey
-          ? `${captures} taken of ${surveyed} surveyed`
-          : "Sector not surveyed yet"}
+          ? `${captures} obtenue${captures > 1 ? "s" : ""} sur ${surveyed} relevée${surveyed > 1 ? "s" : ""}`
+          : "Secteur pas encore relevé"}
       </span>
       <span className="t-body-s hold__detail">{sector}</span>
     </div>

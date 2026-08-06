@@ -14,7 +14,7 @@ import "./pricing.css";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Pricing · Towncenter",
+  title: "Tarification · Towncenter",
 };
 
 // Invented businesses, and they must stay invented: this screen has to give the
@@ -39,7 +39,7 @@ const COMMON = {
 
 const WITNESSES: Record<string, { who: string; facts: ScoringFacts }> = {
   baseCents: {
-    who: "A young shop · 12 reviews · no website · no usable photo",
+    who: "Une jeune boutique · 12 avis · aucun site web · aucune photo exploitable",
     facts: {
       ...COMMON,
       openEstablishmentCount: 1,
@@ -49,7 +49,7 @@ const WITNESSES: Record<string, { who: string; facts: ScoringFacts }> = {
     },
   },
   fullSiteCents: {
-    who: "A typical shop · one address · 235 reviews · no website",
+    who: "Une boutique typique · une adresse · 235 avis · aucun site web",
     facts: {
       ...COMMON,
       openEstablishmentCount: 1,
@@ -59,7 +59,7 @@ const WITNESSES: Record<string, { who: string; facts: ScoringFacts }> = {
     },
   },
   multiPageCents: {
-    who: "A restaurant · a nine-page site, unreachable · 180 reviews",
+    who: "Un restaurant · un site de neuf pages inaccessible · 180 avis",
     facts: {
       ...COMMON,
       openEstablishmentCount: 1,
@@ -69,7 +69,7 @@ const WITNESSES: Record<string, { who: string; facts: ScoringFacts }> = {
     },
   },
   multiAddressCents: {
-    who: "A three-shop chain · one owner · no website",
+    who: "Une chaîne de trois boutiques · un propriétaire · aucun site web",
     facts: {
       ...COMMON,
       openEstablishmentCount: 3,
@@ -79,7 +79,7 @@ const WITNESSES: Record<string, { who: string; facts: ScoringFacts }> = {
     },
   },
   recurringBaseCents: {
-    who: "A typical shop · one address · 235 reviews · no website",
+    who: "Une boutique typique · une adresse · 235 avis · aucun site web",
     facts: {
       ...COMMON,
       openEstablishmentCount: 1,
@@ -97,11 +97,11 @@ export default async function PricingPage() {
   return (
     <main className="pricing">
       <header className="pricing__head">
-        <Badge asChild><h2>Pricing</h2></Badge>
+        <Badge asChild><h2>Tarification</h2></Badge>
         <div className="pricing__head-act">
           <ResetGrid />
           <Link className="t-body-s pricing__back" href={"/" as Route}>
-            {"Back to the map"}
+            {"Retour à la carte"}
           </Link>
         </div>
       </header>

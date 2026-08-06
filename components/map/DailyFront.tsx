@@ -64,11 +64,11 @@ export function DailyFront({
         aria-controls={panelId}
         onClick={() => setOpen((state) => !state)}
       >
-        <Badge>Today</Badge>
+        <Badge>Aujourd’hui</Badge>
 
         <span className="t-body-s front__verbs tnum">
           {rows.length === 0 ? (
-            <span className="tone-2">nothing to do today</span>
+            <span className="tone-2">rien à faire aujourd’hui</span>
           ) : (
             verbs.map(({ verb, total }, index) => (
               <span key={verb}>
@@ -78,7 +78,7 @@ export function DailyFront({
                     verb === "Follow up" && overdue > 0 ? "front__overdue" : "tone-2"
                   }
                 >
-                  {`${total} to ${verb.toLowerCase()}`}
+                  {`${total} à ${verb.toLowerCase()}`}
                 </span>
               </span>
             ))
@@ -93,8 +93,8 @@ export function DailyFront({
       <div id={panelId} className="front__panel" hidden={!open}>
         {rows.length === 0 ? (
           <p className="t-body-s tone-2">
-            Nothing waiting. Survey a sector, or mark the ones you have already
-            seen.
+            Rien en attente. Relevez un secteur ou marquez celles que vous avez déjà
+            vues.
           </p>
         ) : (
           <>
@@ -127,7 +127,7 @@ export function DailyFront({
                       <span className="front__right">
                         <span className="t-title-3 tnum front__loot">
                           {offGrid
-                            ? "Off-grid"
+                            ? "Hors grille"
                             : formatEuros(
                                 row.target.score.price.value12MonthsCents,
                                 { decimals: "never" },

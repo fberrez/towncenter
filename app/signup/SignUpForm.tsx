@@ -48,8 +48,8 @@ export function SignUp({ isFirstAccount }: SignUpProps) {
 
       {isFirstAccount ? (
         <p className={styles.notice}>
-          This instance has no account yet. The one you create now becomes its
-          owner, and everything already surveyed here belongs to it.
+          Cette instance n’a pas encore de compte. Celui que vous créez maintenant
+          en devient propriétaire et possédera tout ce qui a déjà été relevé ici.
         </p>
       ) : null}
 
@@ -73,7 +73,7 @@ export function SignUp({ isFirstAccount }: SignUpProps) {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="signup-name">Name</FieldLabel>
+          <FieldLabel htmlFor="signup-name">Nom</FieldLabel>
           <Input
             id="signup-name"
             name="displayName"
@@ -85,13 +85,13 @@ export function SignUp({ isFirstAccount }: SignUpProps) {
             aria-describedby={`signup-name-hint${state.fields.displayName ? " signup-name-error" : ""}`}
           />
           <FieldDescription id="signup-name-hint">
-            Optional. It only shows in the account menu.
+            Facultatif. Il n’apparaît que dans le menu du compte.
           </FieldDescription>
           <FieldError id="signup-name-error">{state.fields.displayName}</FieldError>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="signup-password">Password</FieldLabel>
+          <FieldLabel htmlFor="signup-password">Mot de passe</FieldLabel>
           <InputGroup>
             <InputGroupInput
               id="signup-password"
@@ -107,7 +107,7 @@ export function SignUp({ isFirstAccount }: SignUpProps) {
             <InputGroupButton
               onClick={() => setVisible((was) => !was)}
               aria-pressed={visible}
-              aria-label={visible ? "Hide password" : "Show password"}
+              aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
             >
               {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
             </InputGroupButton>
@@ -120,7 +120,7 @@ export function SignUp({ isFirstAccount }: SignUpProps) {
 
       <div style={{ marginTop: "24px" }}>
         <Button type="submit" variant="primary" fullWidth disabled={inProgress}>
-          {inProgress ? "Creating…" : isFirstAccount ? "Claim this instance" : "Create account"}
+          {inProgress ? "Création…" : isFirstAccount ? "Prendre possession de cette instance" : "Créer le compte"}
         </Button>
       </div>
     </form>
