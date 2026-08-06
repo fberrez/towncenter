@@ -7,7 +7,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { Button, RollingAmount } from "@/components/ui";
 import type { PriceGrid, ScoringFacts } from "@/lib/types";
 
-import { savePriceGridAction, resetPriceGridAction } from "./actions";
+import { savePriceGridAction } from "./actions";
 import { centsToEuros, readGridForm, sameGrid, type GridForm } from "./form";
 import { INITIAL_PRICE_GRID_STATE } from "./state";
 import { Witness } from "./Witness";
@@ -65,10 +65,6 @@ export function PriceGridForm({
 }) {
   const [state, action, inProgress] = useActionState(
     savePriceGridAction,
-    INITIAL_PRICE_GRID_STATE,
-  );
-  const [resetState, resetAction, resetInProgress] = useActionState(
-    resetPriceGridAction,
     INITIAL_PRICE_GRID_STATE,
   );
 
@@ -316,20 +312,6 @@ export function PriceGridForm({
               </div>
             </div>
           </div>
-        ) : null}
-      </form>
-
-      <form action={resetAction} className="pricing__reset">
-        <Button type="submit" ton="discret" size="compacte" disabled={resetInProgress}>
-          {resetInProgress ? "Resetting…" : "Back to the default grid"}
-        </Button>
-        <p className="t-body-s">
-          {"Removes your grid rather than overwriting it: the day the defaults change, you follow."}
-        </p>
-        {resetState.error ? (
-          <p className="t-body-s pricing__refusal" role="alert">
-            {resetState.error}
-          </p>
         ) : null}
       </form>
     </>

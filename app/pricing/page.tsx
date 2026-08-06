@@ -7,6 +7,7 @@ import type { ScoringFacts } from "@/lib/types";
 
 import { getPriceGrid } from "../queries";
 import { PriceGridForm } from "./PriceGridForm";
+import { ResetGrid } from "./ResetGrid";
 
 import "./pricing.css";
 
@@ -97,12 +98,12 @@ export default async function PricingPage() {
     <main className="pricing">
       <header className="pricing__head">
         <Tag as="h2">Pricing</Tag>
-        <p className="t-body">
-          {"Your price grid. Every amount the map shows comes from here."}
-        </p>
-        <Link className="t-body-s" href={"/" as Route}>
-          {"Back to the map"}
-        </Link>
+        <div className="pricing__head-act">
+          <ResetGrid />
+          <Link className="t-body-s pricing__back" href={"/" as Route}>
+            {"Back to the map"}
+          </Link>
+        </div>
       </header>
 
       <PriceGridForm grid={grid} witnesses={WITNESSES} />
