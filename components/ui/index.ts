@@ -71,6 +71,7 @@ export {
 } from "./Source";
 export { Hold, type HoldProps } from "./Hold";
 export { Stamp, type StampProps } from "./Stamp";
+export { Spinner, type SpinnerProps } from "./Spinner";
 export { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
 
 export {

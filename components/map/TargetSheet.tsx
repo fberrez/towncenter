@@ -46,6 +46,7 @@ import {
   Sources,
   percent,
   resistanceBand,
+  Spinner,
   type SourceKey,
 } from "@/components/ui";
 import { formatEuros } from "@/lib/format";
@@ -352,7 +353,8 @@ export function TargetSheet({
     <form action={enrich}>
       <input type="hidden" name="id" value={target.id} />
       <Button type="submit" variant="quiet" size="compact" disabled={inProgress}>
-        {enrichPending ? "…" : target.enriched ? "Refresh the facts" : "Fetch the facts"}
+        {enrichPending && <Spinner />}
+        {target.enriched ? "Refresh the facts" : "Fetch the facts"}
       </Button>
     </form>
   );
@@ -397,7 +399,8 @@ export function TargetSheet({
           >
             {/* The clicked row says it is working: a Google call takes over a
                 second and would otherwise read as a dead click. */}
-            {enrichPending ? "…" : action.prompt}
+            {enrichPending && <Spinner />}
+            {action.prompt}
           </button>
         );
 
@@ -428,7 +431,8 @@ export function TargetSheet({
               }
             />
             <Button type="submit" variant="secondary" size="compact" disabled={inProgress}>
-              {notePending ? "…" : "Save"}
+              {notePending && <Spinner />}
+              Save
             </Button>
             <Button variant="quiet" size="compact" onClick={() => setEditing(null)}>
               Cancel
@@ -785,7 +789,8 @@ export function TargetSheet({
                             Keep
                           </Button>
                           <Button type="submit" variant="secondary" disabled={inProgress}>
-                            {undoPending ? "…" : "Erase this fact"}
+                            {undoPending && <Spinner />}
+                            Erase this fact
                           </Button>
                         </form>
                       </>
@@ -841,7 +846,8 @@ export function TargetSheet({
                           Cancel
                         </Button>
                         <Button type="submit" variant="primary" disabled={inProgress}>
-                          {advancePending ? "…" : "Record the take"}
+                          {advancePending && <Spinner />}
+                          Record the take
                         </Button>
                       </div>
                     </form>

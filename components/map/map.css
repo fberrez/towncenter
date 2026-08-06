@@ -201,11 +201,13 @@
   color: var(--accent-text);
 }
 
-/* --- Renaming --- */
+/* --- Rename and delete --- */
 
 /* `.sector__name::after` is absolute and covers the whole card, so anything
    added afterwards falls underneath: visible and perfectly inert. These two
-   lines are what make the rename button and its field usable. */
+   lines are what make the Rename/Delete buttons clickable; the dialogs they
+   open are portalled to `document.body` and sit outside this stacking
+   context entirely. */
 .sector__actions {
   position: relative;
   z-index: 1;
@@ -214,38 +216,6 @@
   align-items: center;
   gap: var(--space-2);
   margin-block-start: var(--space-1);
-}
-
-.sector__rename {
-  align-items: stretch;
-}
-
-.sector__field {
-  flex: 1 1 12ch;
-  min-width: 0;
-  display: flex;
-}
-
-.sector__field .map__input {
-  width: 100%;
-}
-
-.sector__hint {
-  flex-basis: 100%;
-}
-
-.sector__message {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-}
-
-.sector__message[data-status="error"] {
-  color: var(--failure-text);
-}
-
-.sector__message[data-status="success"] {
-  color: var(--success-text);
 }
 
 /* --- The sector whose survey is running --- */
@@ -1310,6 +1280,9 @@ textarea.sheet__input {
 /* The action is coloured like a link, which is what separates it from an inert
    "nothing to do" reason. */
 .field__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: 0;
   border: 0;
   background: transparent;

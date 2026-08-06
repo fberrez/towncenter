@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Source_Serif_4 } from "next/font/google";
 
+import { Toaster } from "@/components/ui/sonner";
 import { THEME_SCRIPT, DEFAULT_THEME } from "@/components/ui/theme";
 
 import "./globals.css";
@@ -112,6 +113,7 @@ export default function RootLayout({
           <i className="rigging__l2" />
         </div>
         {children}
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );
