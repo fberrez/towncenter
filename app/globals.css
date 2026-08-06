@@ -550,6 +550,17 @@ table,
   border-radius: var(--radius-1);
 }
 
+/* Inputs carry their own focus ring (border + veil): the global outline
+   would stack a second one, and its 2 px radius would square their corners. */
+[data-slot="input"]:focus-visible {
+  outline: none;
+  border-radius: 10px;
+}
+[data-slot="input-group-control"]:focus-visible {
+  outline: none;
+  border-radius: 0;
+}
+
 /* The system setting is the only one: there is no in-app motion toggle. Some
    animations need a DIFFERENT behaviour under reduced motion, not merely a
    faster one, so they override this rule where they are defined. */
