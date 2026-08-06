@@ -21,3 +21,4 @@ next-env.d.ts
 
 # Agent worktrees: whole nested checkouts of this same repository.
 .agents/worktrees/
+.claude/worktrees/
