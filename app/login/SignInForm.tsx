@@ -1,10 +1,18 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
-import { Field } from "@/components/gate/Field";
-import { Button } from "@/components/ui";
+import {
+  Button,
+  Field,
+  FieldLabel,
+  Input,
+  InputGroup,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui";
 
 import { signInAction } from "./actions";
 import { INITIAL_SIGNIN_STATE } from "./state";
@@ -17,6 +25,7 @@ export function SignIn() {
     INITIAL_SIGNIN_STATE,
   );
   const next = useSearchParams().get("next") ?? "";
+  const [visible, setVisible] = useState(false);
 
   return (
     <form action={action} noValidate>
@@ -27,35 +36,50 @@ export function SignIn() {
       ) : null}
 
       <div className={styles.fields}>
-        <Field
-          name="email"
-          label="Email"
-          type="email"
-          autoComplete="username"
-          autoFocus
-          required
-          maxLength={320}
-          // echoed back after a refusal, so a wrong password does not also
-          // empty the address field
-          defaultValue={state.email}
-        />
+        <Field>
+          <FieldLabel htmlFor="signin-email">Email</FieldLabel>
+          <Input
+            id="signin-email"
+            name="email"
+            type="email"
+            autoComplete="username"
+            autoFocus
+            required
+            maxLength={320}
+            // echoed back after a refusal, so a wrong password does not also
+            // empty the address field
+            defaultValue={state.email}
+          />
+        </Field>
 
-        <Field
-          name="password"
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          required
-          // the bound also exists server-side; this one is only a convenience
-          maxLength={512}
-        />
+        <Field>
+          <FieldLabel htmlFor="signin-password">Password</FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              id="signin-password"
+              name="password"
+              type={visible ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              // the bound also exists server-side; this one is only a convenience
+              maxLength={512}
+            />
+            <InputGroupButton
+              onClick={() => setVisible((was) => !was)}
+              aria-pressed={visible}
+              aria-label={visible ? "Hide password" : "Show password"}
+            >
+              {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+            </InputGroupButton>
+          </InputGroup>
+        </Field>
       </div>
 
       {/* Return path. Its safety is checked SERVER-side, never here. */}
       <input type="hidden" name="next" value={next} />
 
       <div style={{ marginTop: "24px" }}>
-        <Button type="submit" ton="primary" fullWidth disabled={inProgress}>
+        <Button type="submit" variant="primary" fullWidth disabled={inProgress}>
           {inProgress ? "Checking…" : "Enter the field"}
         </Button>
       </div>

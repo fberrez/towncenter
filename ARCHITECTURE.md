@@ -174,6 +174,17 @@ and must not look like it.
 
 The target sheet has a fixed header and three tabs — Approach, Facts, Log.
 
+**UI components come from shadcn/ui, customized in place, never invented.**
+`components.json` (registry `radix-nova`) and `cn()` in `lib/utils.ts` are the
+entry points; a component the registry does not have is a component to do
+without, not one to write. Their tokens are REFERENCES to the system tokens in
+`globals.css` — `--primary` is the cobalt, shadcn's `bg-accent` is wired to
+`--surface-2` — so they switch on `data-theme` with no palette and no `.dark`
+block of their own; never give them one. Beware the case collision: the legacy
+primitive `components/ui/Button.tsx` and shadcn's `button.tsx` are the SAME
+file on a case-insensitive disk — adding the shadcn `button` replaces the
+legacy `Button` and its call sites in the same move.
+
 ---
 
 ## Manual entry versus Google fields

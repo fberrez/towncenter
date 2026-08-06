@@ -1,6 +1,6 @@
 import type { Streak } from "@/lib/game";
 
-import { Tag } from "./Tag";
+import { Badge } from "./badge";
 import { cx } from "./style";
 
 // Monday -> Sunday. The week starts on Monday, like the French calendar the
@@ -49,7 +49,7 @@ export function StreakCard({
 
   return (
     <div className={cx("streak", streak.aliveToday && "streak--alive", className)}>
-      <Tag>Streak</Tag>
+      <Badge>Streak</Badge>
 
       <span className={cx(figureSize, "tnum", "streak__days")}>
         {streak.days}

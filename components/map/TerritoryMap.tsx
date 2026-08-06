@@ -13,7 +13,9 @@
  */
 
 import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Ellipsis } from "lucide-react";
 import type {
   ExpressionSpecification,
   FilterSpecification,
@@ -46,11 +48,12 @@ import type {
 import {
   Button,
   Hold,
-  Tag,
+  Badge,
   Gauge,
-  Menu,
-  MenuButton,
-  MenuLink,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   percent,
   useTheme,
 } from "@/components/ui";
@@ -1507,7 +1510,7 @@ export function TerritoryMap({
           className="territory__tab"
           onClick={() => setRailTab("sectors")}
         >
-          <Tag as="span">Sectors</Tag>
+          <Badge>Sectors</Badge>
         </button>
         <button
           type="button"
@@ -1516,7 +1519,7 @@ export function TerritoryMap({
           className="territory__tab"
           onClick={() => setRailTab("businesses")}
         >
-          <Tag as="span">Businesses</Tag>
+          <Badge>Businesses</Badge>
         </button>
       </div>
 
@@ -1582,7 +1585,7 @@ export function TerritoryMap({
 
           {fallback ? (
             <div className="map__fallback">
-              <Tag as="h2">No map</Tag>
+              <Badge asChild><h2>No map</h2></Badge>
               <p className="t-body">
                 {fallback} The territory then reads as a list, sorted by expected value —
                 the gestures are exactly the same.
@@ -1599,7 +1602,7 @@ export function TerritoryMap({
 
           {mapSilent && !fallback ? (
             <div className="map__silent panel" role="status">
-              <Tag as="h2">The map is not painting</Tag>
+              <Badge asChild><h2>The map is not painting</h2></Badge>
               <p className="t-body">
                 The base map showed nothing after{" "}
                 {Math.round(PAINT_TIMEOUT_MS / 1000)}
@@ -1610,8 +1613,8 @@ export function TerritoryMap({
               </p>
               <div className="map__work-actions">
                 <Button
-                  ton="primary"
-                  size="compacte"
+                  variant="primary"
+                  size="compact"
                   onClick={() =>
                     setFallback(
                       "The base map never answered on this machine.",
@@ -1621,8 +1624,8 @@ export function TerritoryMap({
                   Switch to the list
                 </Button>
                 <Button
-                  ton="discret"
-                  size="compacte"
+                  variant="quiet"
+                  size="compact"
                   onClick={() => setMapSilent(false)}
                 >
                   Keep waiting
@@ -1639,8 +1642,8 @@ export function TerritoryMap({
           {viewFrame && (viewOutsideFrame || inTransition) ? (
             <div className="map__search">
               <Button
-                ton="primary"
-                size="compacte"
+                variant="primary"
+                size="compact"
                 className="tooltip tooltip--below"
                 aria-label="Search in this area — read the businesses inside the current view"
                 disabled={inTransition}
@@ -1658,61 +1661,56 @@ export function TerritoryMap({
               translate one side only. See `.tooltip` in `globals.css`. */}
           <div className="map__tools">
             <div className="map__controls">
-              <Menu
-                label="Settings and account"
-                align="end"
-                classNameTrigger="tooltip tooltip--left"
-              >
-                {(close) => (
-                  <>
-                    {/* The queried activities are set BEFORE a survey and open
-                        a long panel below, in the tool column; the menu only
-                        triggers it, then closes to let it be read. */}
-                    <MenuButton
-                      aria-expanded={toolsOpen}
-                      onClick={() => {
-                        setToolsOpen((open) => !open);
-                        close();
-                      }}
-                    >
-                      Sector settings
-                    </MenuButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="menu__trigger tooltip tooltip--left"
+                    aria-label="Settings and account"
+                  >
+                    <Ellipsis className="menu__icon" aria-hidden="true" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {/* The queried activities are set BEFORE a survey and open
+                      a long panel below, in the tool column; the menu only
+                      triggers it, then closes to let it be read. */}
+                  <DropdownMenuItem
+                    aria-expanded={toolsOpen}
+                    onClick={() => setToolsOpen((open) => !open)}
+                  >
+                    Sector settings
+                  </DropdownMenuItem>
 
-                    <MenuLink href={"/progression" as Route} onClick={close}>
-                      The progress
-                    </MenuLink>
+                  <DropdownMenuItem asChild>
+                    <Link href={"/progression" as Route}>The progress</Link>
+                  </DropdownMenuItem>
 
-                    {/* The price grid drives every amount on this screen, but
-                        it lives on its own page: the sector settings change
-                        before each survey, the grid a few times a year. */}
-                    <MenuLink href={"/pricing" as Route} onClick={close}>
-                      Pricing
-                    </MenuLink>
+                  {/* The price grid drives every amount on this screen, but
+                      it lives on its own page: the sector settings change
+                      before each survey, the grid a few times a year. */}
+                  <DropdownMenuItem asChild>
+                    <Link href={"/pricing" as Route}>Pricing</Link>
+                  </DropdownMenuItem>
 
-                    <MenuLink href={"/onboarding" as Route} onClick={close}>
-                      Setup
-                    </MenuLink>
+                  <DropdownMenuItem asChild>
+                    <Link href={"/onboarding" as Route}>Setup</Link>
+                  </DropdownMenuItem>
 
-                    {/* The label names the DESTINATION, never the current
-                        state: in a list, "Dark" alone reads as the state you
-                        are already in. */}
-                    <MenuButton
-                      onClick={() => {
-                        toggleTheme();
-                        close();
-                      }}
-                    >
-                      {themeDescription}
-                    </MenuButton>
+                  {/* The label names the DESTINATION, never the current
+                      state: in a list, "Dark" alone reads as the state you
+                      are already in. */}
+                  <DropdownMenuItem onClick={() => toggleTheme()}>
+                    {themeDescription}
+                  </DropdownMenuItem>
 
-                    {/* Sign-out lives here too, not only on `/progression`:
-                        the map is where the day is spent, and on a shared
-                        machine an unreachable sign-out leaves the whole
-                        prospecting file open behind you. */}
-                    <AccountMenu account={account} />
-                  </>
-                )}
-              </Menu>
+                  {/* Sign-out lives here too, not only on `/progression`:
+                      the map is where the day is spent, and on a shared
+                      machine an unreachable sign-out leaves the whole
+                      prospecting file open behind you. */}
+                  <AccountMenu account={account} />
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Drawing a sector is the founding gesture and the only control
                   here that changes colour, because it is the only one that
@@ -1759,7 +1757,7 @@ export function TerritoryMap({
 
             {toolsOpen ? (
               <div className="map__settings panel">
-                <Tag as="h3">Activities queried</Tag>
+                <Badge asChild><h3>Activities queried</h3></Badge>
                 <ul className="map__naf">
                   {naf.map((activity) => {
                     const check = chosenNaf.includes(activity.code);
@@ -1786,7 +1784,7 @@ export function TerritoryMap({
                 </ul>
 
                 <label className="map__field">
-                  <Tag as="span">Sector name</Tag>
+                  <Badge>Sector name</Badge>
                   <input
                     className="map__input"
                     value={sectorName}
@@ -1797,8 +1795,8 @@ export function TerritoryMap({
                 </label>
 
                 <Button
-                  ton="secondaire"
-                  size="compacte"
+                  variant="secondary"
+                  size="compact"
                   disabled={enrichPending || enrichLoop}
                   onClick={startEnrichment}
                 >
@@ -1817,9 +1815,11 @@ export function TerritoryMap({
 
           {surveyRun || surveyPending || surveyState.message ? (
             <div className="map__work panel" role="status" aria-live="polite">
-              <Tag as="h3">
-                {surveyLoop || surveyPending ? "Survey running" : "Survey"}
-              </Tag>
+              <Badge asChild>
+                <h3>
+                  {surveyLoop || surveyPending ? "Survey running" : "Survey"}
+                </h3>
+              </Badge>
 
               {surveyRun ? (
                 <>
@@ -1863,8 +1863,8 @@ export function TerritoryMap({
               <div className="map__work-actions">
                 {surveyLoop ? (
                   <Button
-                    ton="discret"
-                    size="compacte"
+                    variant="quiet"
+                    size="compact"
                     onClick={() => {
                       stopSurvey.current = true;
                       setSurveyLoop(false);
@@ -1874,7 +1874,7 @@ export function TerritoryMap({
                   </Button>
                 ) : null}
                 {!surveyLoop && surveyRun && surveyRun.nextPage !== null ? (
-                  <Button ton="primary" size="compacte" onClick={resumeSurvey}>
+                  <Button variant="primary" size="compact" onClick={resumeSurvey}>
                     Resume page {surveyRun.nextPage}
                   </Button>
                 ) : null}
@@ -1884,7 +1884,7 @@ export function TerritoryMap({
 
           {enrichment || enrichState.message ? (
             <div className="map__work panel" role="status" aria-live="polite">
-              <Tag as="h3">Enrichment</Tag>
+              <Badge asChild><h3>Enrichment</h3></Badge>
               {enrichment ? (
                 <p className="t-body tnum">
                   {enrichment.enriched} enriched · {enrichment.remaining}{" "}
@@ -1904,8 +1904,8 @@ export function TerritoryMap({
               ) : null}
               {enrichLoop ? (
                 <Button
-                  ton="discret"
-                  size="compacte"
+                  variant="quiet"
+                  size="compact"
                   onClick={() => {
                     stopEnrich.current = true;
                     setEnrichLoop(false);

@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 
-import { Tag } from "@/components/ui";
+import { Badge } from "@/components/ui";
 import { requireUser } from "@/lib/accounts";
 import type { ScoringFacts } from "@/lib/types";
 
@@ -97,7 +97,7 @@ export default async function PricingPage() {
   return (
     <main className="pricing">
       <header className="pricing__head">
-        <Tag as="h2">Pricing</Tag>
+        <Badge asChild><h2>Pricing</h2></Badge>
         <div className="pricing__head-act">
           <ResetGrid />
           <Link className="t-body-s pricing__back" href={"/" as Route}>

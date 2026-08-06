@@ -244,7 +244,7 @@ export function PriceGridForm({
           <div className="pricing__actions">
             <Button
               type="submit"
-              ton="primary"
+              variant="primary"
               className="pricing__save"
               disabled={inProgress || (hydrated && !dirty)}
             >
@@ -293,8 +293,8 @@ export function PriceGridForm({
                 <div className="pricing__done-act">
                   <Button
                     type="button"
-                    ton="primary"
-                    size="compacte"
+                    variant="primary"
+                    size="compact"
                     autoFocus
                     onClick={() => router.push("/" as Route)}
                   >
@@ -302,8 +302,8 @@ export function PriceGridForm({
                   </Button>
                   <Button
                     type="button"
-                    ton="discret"
-                    size="compacte"
+                    variant="quiet"
+                    size="compact"
                     onClick={() => setFinishing(false)}
                   >
                     {"Stay here"}

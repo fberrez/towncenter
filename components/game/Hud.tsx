@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 
 import type { Progression, TargetRow } from "@/app/queries";
 import type { Account } from "@/lib/accounts";
-import { ThemeToggle, Tag, Gauge, RollingAmount, percent } from "@/components/ui";
+import { ThemeToggle, Badge, Gauge, RollingAmount, percent } from "@/components/ui";
 import { AccountRail } from "@/components/gate/Account";
 import { formatEuros } from "@/lib/format";
 
@@ -32,7 +32,7 @@ type MetricProps = {
 function Metric({ label, value, detail, gold = false, gauge }: MetricProps) {
   return (
     <div className={styles.metric}>
-      <Tag>{label}</Tag>
+      <Badge>{label}</Badge>
       <div className={styles.metric__row}>
         <span
           className={`t-title-2 tnum ${styles.metric__value} ${gold ? styles["metric__value--accent"] : ""}`}

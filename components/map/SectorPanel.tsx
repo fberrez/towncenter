@@ -8,7 +8,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { renameZoneAction } from "@/app/actions";
 import { initialActionState } from "@/app/actionState";
 import type { ZoneRow } from "@/app/queries";
-import { Button, Tag, Gauge, percent } from "@/components/ui";
+import { Button, Badge, Gauge, percent } from "@/components/ui";
 import { formatEuros } from "@/lib/format";
 import type { Bbox } from "@/lib/types";
 
@@ -88,10 +88,10 @@ export function SectorPanel({
   return (
     <div className="sectors">
       <div className="sectors__head">
-        <Tag as="h2">Sectors</Tag>
+        <Badge asChild><h2>Sectors</h2></Badge>
         <Button
-          ton={drawMode ? "primary" : "secondaire"}
-          size="compacte"
+          variant={drawMode ? "primary" : "secondary"}
+          size="compact"
           onClick={onDraw}
           aria-pressed={drawMode}
         >
@@ -101,7 +101,7 @@ export function SectorPanel({
 
       {current && !ruleMet && !ruleLifted ? (
         <div className="sectors__discipline">
-          <Tag as="p">Discipline</Tag>
+          <Badge asChild><p>Discipline</p></Badge>
           <p className="t-body-s">
             You set yourself a rule: finish one sector before opening another.
           </p>
@@ -116,7 +116,7 @@ export function SectorPanel({
             thickness="fine"
             label="Progress toward the rule"
           />
-          <Button ton="discret" size="compacte" onClick={() => setRuleLifted(true)}>
+          <Button variant="quiet" size="compact" onClick={() => setRuleLifted(true)}>
             Lift the rule
           </Button>
         </div>
@@ -243,15 +243,15 @@ export function SectorPanel({
                       </label>
                       <Button
                         type="submit"
-                        ton="primary"
-                        size="compacte"
+                        variant="primary"
+                        size="compact"
                         disabled={renamePending}
                       >
                         {renamePending ? "…" : "Keep"}
                       </Button>
                       <Button
-                        ton="discret"
-                        size="compacte"
+                        variant="quiet"
+                        size="compact"
                         onClick={() => setRenaming(null)}
                       >
                         Cancel
@@ -263,8 +263,8 @@ export function SectorPanel({
                   ) : (
                     <div className="sector__actions">
                       <Button
-                        ton="discret"
-                        size="compacte"
+                        variant="quiet"
+                        size="compact"
                         onClick={() => setRenaming(sector.id)}
                       >
                         Rename

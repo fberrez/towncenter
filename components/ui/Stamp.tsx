@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { Button } from "./Button";
+import { Button } from "./button";
 import { Loot } from "./Loot";
 import { percent } from "./percent";
 import { cx } from "./style";
@@ -143,8 +143,8 @@ export function Stamp({
 
         <Button
           ref={closeButton}
-          ton="discret"
-          size="compacte"
+          variant="quiet"
+          size="compact"
           className="stamp__close"
           onClick={onClose}
         >

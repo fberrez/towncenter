@@ -5,7 +5,7 @@
 // It therefore offers exactly the same gestures as the map.
 
 import type { TargetRow } from "@/app/queries";
-import { Tag, RankDot, percent, resistanceBand } from "@/components/ui";
+import { Badge, RankDot, percent, resistanceBand } from "@/components/ui";
 import { formatEuros } from "@/lib/format";
 
 import { STATE_LABEL } from "./text";
@@ -121,7 +121,7 @@ export function TargetList({
     <div className={className}>
       {offGrid.length > 0 ? (
         <section className="target-list__off-grid">
-          <Tag as="h3">Off-grid · to price by hand</Tag>
+          <Badge asChild><h3>Off-grid · to price by hand</h3></Badge>
           <p className="t-body-s tone-2">
             The work goes beyond the default offer, so no amount is announced. These
             are not zero-euro targets — they are the ones worth going to see.

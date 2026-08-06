@@ -9,7 +9,7 @@
 import { useId, useState } from "react";
 
 import type { FrontLine } from "@/app/queries";
-import { Tag, RankDot } from "@/components/ui";
+import { Badge, RankDot } from "@/components/ui";
 // `nonBreaking` is not re-exported by the `components/ui` barrel; import it
 // from the source rather than writing a second one.
 import { nonBreaking } from "@/components/ui/percent";
@@ -64,7 +64,7 @@ export function DailyFront({
         aria-controls={panelId}
         onClick={() => setOpen((state) => !state)}
       >
-        <Tag as="span">Today</Tag>
+        <Badge>Today</Badge>
 
         <span className="t-body-s front__verbs tnum">
           {rows.length === 0 ? (

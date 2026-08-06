@@ -1,4 +1,4 @@
-import { Tag } from "./Tag";
+import { Badge } from "./badge";
 import { Gauge } from "./Gauge";
 import { percent } from "./percent";
 import { cx } from "./style";
@@ -37,7 +37,7 @@ export function Hold({
     // `glass` and not an opaque surface: a floating hold sits ON the map, over
     // something that moves.
     <div className={cx("hold", "glass", floating && "hold--floating", className)}>
-      <Tag>Hold</Tag>
+      <Badge>Hold</Badge>
 
       <span className="hold__rate tnum">
         {hasSurvey ? percent(rate) : "—"}

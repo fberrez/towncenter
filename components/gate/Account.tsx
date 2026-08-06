@@ -6,7 +6,11 @@
 import { useFormStatus } from "react-dom";
 
 import { signOutAction } from "@/app/login/actions";
-import { MenuButton, MenuHeading, MenuSeparator } from "@/components/ui";
+import {
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui";
 import type { Account } from "@/lib/accounts";
 
 import styles from "./account.module.css";
@@ -32,14 +36,15 @@ export function AccountRail({ account }: AccountRailProps) {
 
 // role="none" on the form is required: role="menu" must own its menuitem
 // children, and a <form> in between drops sign-out from the announced count.
-// Closing the menu on click would unmount the form before the browser submits it.
+// The menu must NOT close on this click: it would unmount the form before the
+// browser submits it.
 export function AccountMenu({ account }: AccountRailProps) {
   const name = account.displayName?.trim() || account.email;
 
   return (
     <>
-      <MenuSeparator />
-      <MenuHeading title={account.email}>{name}</MenuHeading>
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel title={account.email}>{name}</DropdownMenuLabel>
       <form action={signOutAction} role="none">
         <SignOutItem />
       </form>
@@ -52,8 +57,14 @@ function SignOutItem() {
   const { pending } = useFormStatus();
 
   return (
-    <MenuButton type="submit" disabled={pending}>
-      {pending ? "Signing out…" : "Sign out"}
-    </MenuButton>
+    <DropdownMenuItem asChild onSelect={(event) => event.preventDefault()}>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={(event) => event.currentTarget.form?.requestSubmit()}
+      >
+        {pending ? "Signing out…" : "Sign out"}
+      </button>
+    </DropdownMenuItem>
   );
 }
