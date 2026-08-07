@@ -961,6 +961,19 @@ table,
   color: var(--accent);
 }
 
+/* The one button that ends something. Same bordered shape as secondary, so it
+   does not out-shout the page, but tinted in `--failure` so it never reads as
+   just another neutral action next to it. */
+.button--danger {
+  background: transparent;
+  color: var(--failure-text);
+  border-color: color-mix(in oklch, var(--failure) 45%, transparent);
+}
+.button--danger:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--failure) 12%, transparent);
+  border-color: var(--failure);
+}
+
 /* The quiet button is not laid on the page, it is written on it. Without that
    exception a screen of six gestures looks like a row of calculator keys.
 
@@ -994,6 +1007,15 @@ table,
    button keeps announcing that it can be pressed. */
 .button--quiet:disabled {
   text-decoration-color: transparent;
+}
+
+/* A quiet button that ends something (paired with `.button--quiet`, not a
+   variant on its own): same restrained shape, but the hover tints `--failure`
+   instead of the accent, so a delete trigger next to a rename one does not
+   read as just another neutral action. */
+.button--quiet.button--quiet-danger:hover:not(:disabled) {
+  color: var(--failure-text);
+  text-decoration-color: var(--failure);
 }
 
 .button--compact {

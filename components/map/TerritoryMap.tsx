@@ -775,6 +775,13 @@ export function TerritoryMap({
     name: string;
   } | null>(null);
 
+  // Set when a sector is deleted while its survey banner is still showing:
+  // `surveyState` is a separate action from the delete and has no idea the
+  // zone it describes is gone, so this is checked by hand in `surveyRun`.
+  const [dismissedSurveyZoneId, setDismissedSurveyZoneId] = useState<string | null>(
+    null,
+  );
+
   const [railTab, setRailTab] = useState<"sectors" | "businesses">("sectors");
   const [railOpen, setRailOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
@@ -1435,7 +1442,18 @@ export function TerritoryMap({
     startTransition(() => enrich(data));
   }, [enrichState, enrich, frame]);
 
-  const surveyRun = surveyState.result?.kind === "harvest" ? surveyState.result : null;
+  // True only for the STALE result of the deleted zone, never for a survey
+  // genuinely in flight: `surveyPending` alone still shows "Survey running"
+  // for whatever runs next, even in the one-request window before its own
+  // result has landed and this flag would otherwise still read the old one.
+  const surveyDismissed =
+    surveyState.result?.kind === "harvest" &&
+    surveyState.result.zoneId === dismissedSurveyZoneId;
+
+  const surveyRun =
+    surveyState.result?.kind === "harvest" && !surveyDismissed
+      ? surveyState.result
+      : null;
   const enrichment =
     enrichState.result?.kind === "enrichment" ? enrichState.result : null;
 
@@ -1462,6 +1480,20 @@ export function TerritoryMap({
   const sectorHere =
     sectors.find((sector) => frameToText(sector.bbox) === frameText) ?? null;
   const nameHere = sectorHere?.label?.trim() || (sectorHere ? "this sector" : "this view");
+
+  // A deleted sector leaves two things pointed at nothing: its own survey
+  // banner, if still showing, and the `frame` param, if that was the view
+  // being looked at. `frame` drops rather than picks a replacement — the
+  // server recomputes its own default the same way it does on a bare `/`.
+  const handleSectorDeleted = useCallback(
+    (deleted: ZoneRow) => {
+      if (surveyRun?.zoneId === deleted.id) setDismissedSurveyZoneId(deleted.id);
+      if (frameToText(deleted.bbox) === frameText) {
+        beginTransition(() => router.replace("/" as Route, { scroll: false }));
+      }
+    },
+    [surveyRun, frameText, router],
+  );
 
   const resurveyThisView = () => {
     if (!viewFrame) return;
@@ -1540,6 +1572,7 @@ export function TerritoryMap({
               setRailOpen(false);
               goTo(frameToText(bbox), null);
             }}
+            onDeleted={handleSectorDeleted}
           />
         ) : (
           <TargetList
@@ -1814,7 +1847,7 @@ export function TerritoryMap({
             ) : null}
           </div>
 
-          {surveyRun || surveyPending || surveyState.message ? (
+          {surveyRun || surveyPending || (surveyState.message && !surveyDismissed) ? (
             <div className="map__work panel" role="status" aria-live="polite">
               <Badge asChild>
                 <h3>
@@ -1855,7 +1888,7 @@ export function TerritoryMap({
                 </>
               ) : null}
 
-              {surveyState.message ? (
+              {surveyState.message && !surveyDismissed ? (
                 <p className="t-body" data-status={surveyState.status}>
                   {surveyState.message}
                 </p>

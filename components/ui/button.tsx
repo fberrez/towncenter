@@ -12,6 +12,7 @@ const buttonVariants = cva("button", {
       primary: "button--primary",
       secondary: "button--secondary",
       quiet: "button--quiet",
+      danger: "button--danger",
     },
     size: {
       default: "",
