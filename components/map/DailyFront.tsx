@@ -9,7 +9,7 @@
 import { useId, useState } from "react";
 
 import type { FrontLine } from "@/app/queries";
-import { Badge, RankDot } from "@/components/ui";
+import { Badge } from "@/components/ui";
 // `nonBreaking` is not re-exported by the `components/ui` barrel; import it
 // from the source rather than writing a second one.
 import { nonBreaking } from "@/components/ui/percent";
@@ -104,20 +104,18 @@ export function DailyFront({
               before a first call, even a cheaper one.
             </p>
             <ol className="front__list">
-              {rows.map((row, rank) => {
+              {rows.map((row, index) => {
                 const offGrid = row.target.score.price.kind === "off-grid";
                 return (
                   <li key={row.target.id}>
                     <button
                       type="button"
                       className="front__row"
-                      data-rank={row.target.rarity.rank.level}
                       data-selected={row.target.id === selectedId ? "yes" : "no"}
                       data-overdue={row.overdue ? "yes" : "no"}
                       onClick={() => onSelect(row.target.id)}
                     >
-                      <span className="t-micro tnum front__order">{rank + 1}</span>
-                      <RankDot rank={row.target.rarity.rank} aligned />
+                      <span className="t-micro tnum front__order">{index + 1}</span>
                       <span className="front__body">
                         <span className="t-title-3 front__name">{row.target.name}</span>
                         <span className="t-body-s tone-2 front__rule">

@@ -9,7 +9,6 @@ import "server-only";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { db, events, targets, zones, type NewTarget, type Zone } from "@/lib/db";
-import { xpForSpotting } from "@/lib/game";
 import { areaKm2, normalizeBbox, pointInPolygon } from "@/lib/geo";
 import {
   HARVEST_PAGES_PER_CALL,
@@ -154,21 +153,14 @@ export async function upsertTargets(
 }
 
 // one `survey` event per newly discovered SIRET; a re-harvest logs nothing
-// again. Past `XP_HARVEST_CAP` the event is still logged, worth zero.
-type SpottingWrite = {
-  logged: number;
-  advance: number;
-};
-
+// again.
 async function logSpotting(
   ownerId: string,
   sirets: readonly string[],
-  alreadySpotted: number,
-): Promise<SpottingWrite> {
-  if (sirets.length === 0) return { logged: 0, advance: 0 };
+): Promise<number> {
+  if (sirets.length === 0) return 0;
 
   let logged = 0;
-  let advance = 0;
 
   for (let index = 0; index < sirets.length; index += UPSERT_CHUNK) {
     const slice = sirets.slice(index, index + UPSERT_CHUNK);
@@ -181,22 +173,18 @@ async function logSpotting(
 
     if (rows.length === 0) continue;
 
-    // `rank` counts within the SECTOR, previous slices included, or every
-    // slice would hand out a fresh cap.
-    const values = rows.map((row, rank) => ({
-      ownerId,
-      targetId: row.id,
-      kind: "survey" as const,
-      xp: xpForSpotting(alreadySpotted + logged + rank),
-    }));
-
-    await db.insert(events).values(values);
+    await db.insert(events).values(
+      rows.map((row) => ({
+        ownerId,
+        targetId: row.id,
+        kind: "survey" as const,
+      })),
+    );
 
     logged += rows.length;
-    for (const value of values) advance += value.xp;
   }
 
-  return { logged, advance };
+  return logged;
 }
 
 export type ZoneRefusal = {
@@ -290,8 +278,6 @@ export type HarvestSliceRequest = {
   maxPages?: number;
   /** Targets already written for this sector, so the cap bites. */
   alreadyFound?: number;
-  /** Businesses already discovered, so `XP_HARVEST_CAP` bites per sector. */
-  alreadyNew?: number;
 };
 
 /** Serializable: never an `Error`. */
@@ -321,8 +307,6 @@ export type HarvestSlice = {
   tally: HarvestTally;
   outsidePolygon: number;
   spotted: number;
-  /** Smaller than `spotted` once the sector crossed `XP_HARVEST_CAP`. */
-  advance: number;
   done: boolean;
   truncated: boolean;
   /** The 10 000-result window is saturated: the sector is too large. */
@@ -360,13 +344,11 @@ export async function harvestSlice(
   let created = 0;
   let outsidePolygon = 0;
   let spotted = 0;
-  let advance = 0;
   let truncated = false;
   let done = false;
   let failure: HarvestFailure | null = null;
 
   let zoneTotal = Math.max(0, request.alreadyFound ?? 0);
-  let zoneSpotted = Math.max(0, request.alreadyNew ?? 0);
 
   for (let step = 0; step < maxPages; step += 1) {
     // `page * per_page` cannot exceed 10 000: past that the API answers 400.
@@ -443,14 +425,7 @@ export async function harvestSlice(
       zoneTotal += written.found;
       // log before moving on, so a later failure cannot leave written targets
       // without their spotting events.
-      const logged = await logSpotting(
-        request.ownerId,
-        written.createdSirets,
-        zoneSpotted,
-      );
-      spotted += logged.logged;
-      advance += logged.advance;
-      zoneSpotted += logged.logged;
+      spotted += await logSpotting(request.ownerId, written.createdSirets);
     } catch (error) {
       // a failed write is not retryable: insisting would only burn quota.
       failure = {
@@ -509,7 +484,7 @@ export async function harvestSlice(
   // to see it.
   console.info(
     `[survey] sector ${request.zoneId} pages ${firstPage}-${lastPage}:`,
-    JSON.stringify({ ...tally, outsidePolygon, spotted, advance }),
+    JSON.stringify({ ...tally, outsidePolygon, spotted }),
   );
 
   return {
@@ -526,7 +501,6 @@ export async function harvestSlice(
     tally,
     outsidePolygon,
     spotted,
-    advance,
     done,
     truncated,
     saturated: totalResults >= SIRENE_MAX_RESULT_WINDOW,

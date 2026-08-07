@@ -39,7 +39,6 @@ export async function savePriceGridAction(
   }
 
   revalidatePath("/");
-  revalidatePath("/progression");
   revalidatePath("/pricing");
 
   return { error: null, fields: {}, saved: true };
@@ -66,7 +65,6 @@ export async function resetPriceGridAction(
   }
 
   revalidatePath("/");
-  revalidatePath("/progression");
   revalidatePath("/pricing");
 
   return { error: null, fields: {}, saved: true };

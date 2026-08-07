@@ -15,15 +15,10 @@ from the French national company register. Each becomes a **target** with two
 numbers: the **loot** (what you would earn if it signed) and the **resistance**
 (what stands between you and the signature).
 
-The map is the product, and every game element is backed by a measured fact:
+The map is the product, and everything on it is backed by a measured fact:
 loot from a price grid the operator actually charges, resistance from the state
-of the website, the footfall and the ability to pay. Progress is logged at the
-moment of the fact and never recomputed — a counter that climbs without a fact
-behind it does not belong here.
-
-`/progression` carries a section named **The model's honesty** comparing what
-the model predicted with what happened. Do not remove or soften it: it exists
-so the model can be wrong in public.
+of the website, the footfall and the ability to pay. Nothing climbs to look
+busy — a number with no fact behind it does not belong here.
 
 ---
 
@@ -67,11 +62,9 @@ modules. Node 22+. No test framework: three executable benches under
 |---|---|
 | `app/` | Routes, Server Actions (`actions.ts`), all reads (`queries.ts`) |
 | `components/map/` | Map, target sheet, sector panel, field and fact inventories |
-| `components/game/` | HUD, clusters, XP and level surfaces |
 | `components/ui/` | Shared primitives, including the provenance registry `Source.tsx` |
 | `lib/scoring.ts` | Price and probability. Pure. |
-| `lib/game.ts` | Ranks, rarity, XP, levels, streaks, seasons |
-| `lib/priceGrid.ts` | `DEFAULT_PRICE_GRID` and its validation schema |
+| `lib/priceGrid.ts` | `DEFAULT_PRICE_GRID`, its validation schema, `standardDealCents(grid)` |
 | `lib/sources/` | SIRENE, IGN geocoder, Google Places, in-repo site audit |
 | `lib/db/schema.ts` | The six tables and their indexes |
 | `scripts/verify-*.mts` | The benches |
@@ -106,8 +99,7 @@ grid, reference date, recalibrated base probability. That purity keeps
 `scripts/verify-scoring.mts` runnable with no database.
 
 **Scores are recomputed on read, never stored.** Facts are stored, scores
-derived — that is what lets the model be recalibrated without a migration. The
-one thing stored and never recomputed is logged **progress**.
+derived — that is what lets the model be recalibrated without a migration.
 
 **The price grid is data, not a constant, and each account has its own.** Type
 `PriceGrid` (`lib/types.ts`), documented default `DEFAULT_PRICE_GRID`
@@ -124,20 +116,6 @@ a zero.
 
 ---
 
-## The game layer
-
-**The benchmark scale follows the grid.** The five ranks are fractions of the
-default deal — `standardDealCents(grid)`, a full site plus the horizon times
-the recurring fee. Otherwise an account charging twice as much would land
-every target in the top rank. Hence `ranksFor(grid)`,
-`rarityOf(score, count, grid)` and `xpFor(kind, score, grid)`, all defaulting
-to `DEFAULT_PRICE_GRID` so benches and legends read the reference scale
-without passing anything.
-
-Streaks count **Europe/Paris** days, not UTC (`dayKeyParis` in `lib/game.ts`).
-
----
-
 ## Interface conventions
 
 **Interface in English, amounts and dates French-formatted.** Screens,
@@ -149,7 +127,7 @@ French words are proper nouns: streets, towns, trade names.
 
 **Keys are ASCII, labels are visible text, and the two never mix.** A key is a
 short, lowercase, space-free string: URL value, storage key, `data-*`
-attribute, MapLibre layer id, GeoJSON property, `rank.key`, `FactKey`,
+attribute, MapLibre layer id, GeoJSON property, `TargetState`, `FactKey`,
 `SourceKey`. Keys are never translated, never accented — an accented key
 raises no error, it stops working, and a renamed key orphans every row already
 written.
@@ -305,7 +283,7 @@ Contractual, not a setting.
 
 ```bash
 npm run lint         # eslint, zero errors required
-npm run verify       # scoring, game, tenancy
+npm run verify       # scoring, tenancy
 npm run typecheck    # next typegen && tsc --noEmit
 npm run build
 ```
@@ -313,7 +291,6 @@ npm run build
 | Bench | What it proves |
 |---|---|
 | `verify:scoring` | Lands on **five deals actually worked** — two signed, one refused, two off-grid — then two orderings and eleven invariants. |
-| `verify:game` | Rank follows expected value, a bigger business is worth more, the second tier lands at the end of a first deal, streaks count Europe/Paris days. |
 | `verify:tenancy` | Every exported read returns only its owner's rows. **The only bench whose failure is a data leak.** |
 
 `verify:tenancy` needs a real Postgres: a stub returning empty arrays would

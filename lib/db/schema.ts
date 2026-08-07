@@ -162,7 +162,7 @@ export const targets = pgTable(
     manualNotedAt: timestamp("manual_noted_at", { withTimezone: true }),
 
     state: text("state", { enum: TARGET_STATES }).notNull().default("spotted"),
-    /** Null unless taken. A season report reading `state` would count them all. */
+    /** Null unless taken. Reading `state` alone would count withdrawals and dismissals too. */
     capturedAt: timestamp("captured_at", { withTimezone: true }),
     notes: text("notes"),
 
@@ -257,16 +257,13 @@ export const events = pgTable(
 
     kind: text("kind", { enum: EVENT_KINDS }).notNull(),
 
-    /** Frozen at write, never recomputed: editing `xpFor` must not move a tier. */
-    xp: integer("xp").notNull().default(0),
-
     /** Whole cents. On a `take`, what was signed, not what was estimated. */
     valueCents: integer("value_cents"),
 
     note: text("note"),
 
     // `withTimezone` stores an absolute instant; a naked `timestamp` reads back as
-    // server-local time. The streak day is Europe/Paris, computed on read.
+    // server-local time.
     occurredAt: timestamp("occurred_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -324,5 +321,5 @@ export type Zone = typeof zones.$inferSelect;
 export type NewZone = typeof zones.$inferInsert;
 export type PriceGridRow = typeof priceGrids.$inferSelect;
 export type NewPriceGridRow = typeof priceGrids.$inferInsert;
-export type GameEvent = typeof events.$inferSelect;
-export type NewGameEvent = typeof events.$inferInsert;
+export type LedgerEvent = typeof events.$inferSelect;
+export type NewLedgerEvent = typeof events.$inferInsert;

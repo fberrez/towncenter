@@ -41,7 +41,6 @@ import {
   Badge,
   Fact,
   SourceLegend,
-  RarityTag,
   Source,
   Sources,
   percent,
@@ -49,7 +48,6 @@ import {
   type SourceKey,
 } from "@/components/ui";
 import { formatEuros } from "@/lib/format";
-import { MIN_SECTOR_SIZE_FOR_SHARE } from "@/lib/limits";
 import { PRICE_OFFER_LABELS } from "@/lib/scoring";
 import { TARGET_STATE_RANK, type TargetState } from "@/lib/types";
 
@@ -106,7 +104,7 @@ export function TargetSheet({
   onClose,
   onSelect,
 }: TargetSheetProps) {
-  const { target: target, log, neighbours, sameRankInSector, sectorSize } = detail;
+  const { target: target, log, neighbours } = detail;
 
   const [advanceState, advance, advancePending] = useActionState(
     advanceTargetAction,
@@ -462,18 +460,7 @@ export function TargetSheet({
     <aside className="sheet" aria-label={`Record for ${target.name}`}>
       <header className="sheet__head">
         <div className="sheet__head-top">
-          <RarityTag
-            rarity={target.rarity}
-            variant="map"
-            // The "i" only exists on the sheet: the same chip is used in the
-            // list and on the map, where forty of them sit side by side.
-            explained
-            sector={
-              sectorSize >= MIN_SECTOR_SIZE_FOR_SHARE
-                ? { sameRank: sameRankInSector, surveyed: sectorSize }
-                : null
-            }
-          />
+          <p className="t-body-s tone-2">{target.lootReason}</p>
           <Button
             variant="quiet"
             size="compact"
@@ -495,7 +482,7 @@ export function TargetSheet({
           <Source sourceKey="sirene" />
         </p>
 
-        {/* The two questions of the game, side by side and nothing else. */}
+        {/* The two questions, side by side and nothing else. */}
         <div className="sheet__figures">
           <div className="sheet__figure">
             <Loot
@@ -768,7 +755,6 @@ export function TargetSheet({
                           {lastEvent.valueCents !== null
                             ? ` · ${formatEuros(lastEvent.valueCents, { decimals: "never" })}`
                             : ""}
-                          {lastEvent.xp > 0 ? ` · ${lastEvent.xp} progress points` : ""}
                         </p>
                         {lastEvent.note ? (
                           <p className="t-body-s tone-2">{lastEvent.note}</p>
@@ -898,7 +884,8 @@ export function TargetSheet({
                       >
                         <span className="t-body sheet__neighbour-name">{neighbour.name}</span>
                         <span className="t-body-s tone-2 tnum">
-                          {distance(neighbour.distanceMeters)} · {neighbour.rankLabel}
+                          {distance(neighbour.distanceMeters)} ·{" "}
+                          {formatEuros(neighbour.expectancyCents, { decimals: "never" })}
                           {neighbour.state === "spotted"
                             ? ""
                             : ` · ${STATE_LABEL[neighbour.state]}`}
@@ -1129,7 +1116,7 @@ export function TargetSheet({
                 </ol>
               )}
               <p className="t-body-s tone-3">
-                No-game zone: what was said, and when. No rank, no colour.
+                Plain text: what was said, and when.
               </p>
             </section>
           </div>

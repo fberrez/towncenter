@@ -38,7 +38,6 @@ import { enrichZoneAction, harvestZoneAction } from "@/app/actions";
 import { initialActionState } from "@/app/actionState";
 import type {
   FrontLine,
-  Progression,
   TargetCluster,
   TargetDetail,
   TargetRow,
@@ -136,43 +135,63 @@ async function reachableStyle(): Promise<string> {
 // unqueryable from `remaining`. This ceiling exists for the day it does not.
 const MAX_ENRICH_ROUNDS = 60;
 
+const DOT_MIN_PX = 8;
+const DOT_MAX_PX = 20;
+
+// off-grid: 5+ open establishments reads as the same magnitude as a full
+// standard deal — same cap the price grid itself uses for a franchise site.
+const OFF_GRID_ESTABLISHMENT_CAP = 5;
+
+// what a dot's diameter and label priority are BOTH built from: an off-grid
+// target's expectancy is zero by construction, so it borrows a magnitude from
+// its establishment count instead, scaled onto the same cents axis.
+function lootMagnitudeCents(target: TargetRow, standardDeal: number): number {
+  if (target.score.price.kind !== "off-grid") return target.score.expectancyCents;
+  const ratio = Math.min(1, (target.establishmentCount ?? 0) / OFF_GRID_ESTABLISHMENT_CAP);
+  return Math.round(ratio * standardDeal);
+}
+
+// area-scaled (sqrt), not linear: a target worth four times another should
+// not look four times as large, or the map reads as a bar chart.
+function targetDiameterPx(magnitudeCents: number, standardDeal: number): number {
+  const ratio = standardDeal > 0 ? Math.min(1, Math.max(0, magnitudeCents / standardDeal)) : 0;
+  return DOT_MIN_PX + (DOT_MAX_PX - DOT_MIN_PX) * Math.sqrt(ratio);
+}
+
 function targetsToGeoJSON(
   targets: readonly TargetRow[],
   selectedId: string | null,
+  standardDeal: number,
 ): GeoJSON.FeatureCollection {
   return {
     type: "FeatureCollection",
-    features: targets.map((target) => ({
-      type: "Feature",
-      id: target.id,
-      geometry: { type: "Point", coordinates: [target.lng, target.lat] },
-      properties: {
+    features: targets.map((target) => {
+      const magnitude = lootMagnitudeCents(target, standardDeal);
+      return {
+        type: "Feature",
         id: target.id,
-        name: target.name,
-        // Dot DIAMETER comes from the rank, which comes from expected value:
-        // big dots are big expectations, not decoration.
-        diameter: target.rarity.rank.dotPx,
-        ring: target.rarity.rank.ringPx,
-        rank: target.rarity.rank.level,
-        state: target.state,
-        offGrid: target.score.price.kind === "off-grid",
-        selected: target.id === selectedId,
-        // Formatted here rather than by a style expression: `formatEuros`
-        // carries the fr-FR narrow no-break space between thousands, which
-        // MapLibre cannot produce.
-        price:
-          target.score.price.kind === "off-grid"
-            ? "off-grid"
-            : formatEuros(target.score.price.value12MonthsCents, { decimals: "never" }),
-        // Label placement priority, in cents. An off-grid target's expected
-        // value is zero by construction, so sorting on it would always place
-        // last the names that most need writing; they get their rank's FLOOR.
-        sort:
-          target.score.price.kind === "off-grid"
-            ? target.rarity.rank.minExpectancyCents
-            : target.score.expectancyCents,
-      },
-    })),
+        geometry: { type: "Point", coordinates: [target.lng, target.lat] },
+        properties: {
+          id: target.id,
+          name: target.name,
+          // Dot DIAMETER is proportional to expected value: big dots are big
+          // expectations, not decoration.
+          diameter: targetDiameterPx(magnitude, standardDeal),
+          state: target.state,
+          offGrid: target.score.price.kind === "off-grid",
+          selected: target.id === selectedId,
+          // Formatted here rather than by a style expression: `formatEuros`
+          // carries the fr-FR narrow no-break space between thousands, which
+          // MapLibre cannot produce.
+          price:
+            target.score.price.kind === "off-grid"
+              ? "off-grid"
+              : formatEuros(target.score.price.value12MonthsCents, { decimals: "never" }),
+          // Label placement priority, in cents.
+          sort: magnitude,
+        },
+      };
+    }),
   };
 }
 
@@ -312,30 +331,6 @@ function targetRadius(factor: number): ExpressionSpecification {
     "+",
     ["*", ["/", ["get", "diameter"], 2], factor],
     ["case", ["==", ["get", "selected"], true], 5, 0],
-  ];
-}
-
-// These two expressions exist so `installLayers` and `repaint` share ONE
-// definition; a divergence between them only shows after a theme toggle.
-// `palette.ranks` is currently uniform, so the `match` reads as one tint; it is
-// kept because it is where a per-rank scale would be reconnected.
-
-/** Fill: the accent, except for what has left play. */
-function targetColor(palette: MapPalette): ExpressionSpecification {
-  return [
-    "match",
-    ["get", "rank"],
-    1,
-    palette.ranks[0],
-    2,
-    palette.ranks[1],
-    3,
-    palette.ranks[2],
-    4,
-    palette.ranks[3],
-    5,
-    palette.ranks[4],
-    palette.text3,
   ];
 }
 
@@ -546,9 +541,9 @@ function installLayers(map: MapLibreMap, palette: MapPalette): void {
           18,
           targetRadius(1.3),
         ],
-        "circle-color": targetColor(palette),
-        // What has left play fades; the DIAMETER always stays the rank's, so
-        // the rank is never lost.
+        "circle-color": palette.accentMark,
+        // What has left play fades; the DIAMETER always stays the same, so
+        // the expected value is never lost.
         "circle-opacity": [
           "match",
           ["get", "state"],
@@ -659,7 +654,7 @@ function repaint(map: MapLibreMap, palette: MapPalette): void {
   map.setPaintProperty(MAP_LAYERS.sectorGhostLine, "line-color", palette.accentMark);
   map.setPaintProperty(MAP_LAYERS.sectorDraftLine, "line-color", palette.accentMark);
 
-  map.setPaintProperty(MAP_LAYERS.targetsDots, "circle-color", targetColor(palette));
+  map.setPaintProperty(MAP_LAYERS.targetsDots, "circle-color", palette.accentMark);
   map.setPaintProperty(
     MAP_LAYERS.targetsDots,
     "circle-stroke-color",
@@ -716,7 +711,8 @@ export type TerritoryMapProps = {
   sectors: readonly ZoneRow[];
   front: readonly FrontLine[];
   stats: ZoneStats;
-  progression: Progression;
+  /** Full-site price plus a year of hosting: the reference a dot's size is measured against. */
+  standardDealCents: number;
   detail: TargetDetail | null;
   /** The queryable activities, with their French NAF labels. */
   naf: readonly NafOption[];
@@ -737,7 +733,7 @@ export function TerritoryMap({
   sectors,
   front,
   stats,
-  progression,
+  standardDealCents,
   detail,
   naf,
   defaultNaf,
@@ -1168,8 +1164,8 @@ export function TerritoryMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || styleVersion === 0) return;
-    pushData(map, SOURCE_TARGETS, targetsToGeoJSON(targets, selectedId));
-  }, [styleVersion, targets, selectedId]);
+    pushData(map, SOURCE_TARGETS, targetsToGeoJSON(targets, selectedId, standardDealCents));
+  }, [styleVersion, targets, selectedId, standardDealCents]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -1682,10 +1678,6 @@ export function TerritoryMap({
                     Sector settings
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem asChild>
-                    <Link href={"/progression" as Route}>The progress</Link>
-                  </DropdownMenuItem>
-
                   {/* The price grid drives every amount on this screen, but
                       it lives on its own page: the sector settings change
                       before each survey, the grid a few times a year. */}
@@ -1704,8 +1696,7 @@ export function TerritoryMap({
                     {themeDescription}
                   </DropdownMenuItem>
 
-                  {/* Sign-out lives here too, not only on `/progression`:
-                      the map is where the day is spent, and on a shared
+                  {/* The map is where the day is spent, and on a shared
                       machine an unreachable sign-out leaves the whole
                       prospecting file open behind you. */}
                   <AccountMenu account={account} />
@@ -1969,11 +1960,6 @@ export function TerritoryMap({
         />
       ) : null}
 
-      {/* The HUD shows the tier as a compact chip; a screen reader needs the
-          whole sentence, once. */}
-      <p className="sr-only">
-        {`Tier ${progression.level.label}, ${progression.xp} progress points.`}
-      </p>
     </div>
   );
 }

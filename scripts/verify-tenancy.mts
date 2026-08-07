@@ -15,11 +15,9 @@ import { eq, sql } from "drizzle-orm";
 
 import {
   getOnboardingFacts,
-  getSeasonReport,
   getBankedTotalCents,
   getPriceGrid,
   getOutcomeCount,
-  getProgression,
   getTargetDetail,
   getTargetRow,
   getZoneStats,
@@ -120,7 +118,6 @@ async function seedGround(
     ownerId: owner.id,
     targetId: target.id,
     kind: "take",
-    xp: 40,
     valueCents: 350_000,
   });
 
@@ -233,75 +230,11 @@ async function main() {
     `${bankedAlice.cents} c · ${bankedAlice.captures} capture`,
   );
 
-  const progAlice = await getProgression(alice);
-  check(
-    "getProgression only sums its own ledger",
-    progAlice.xp === 40 && progAlice.eventCount === 1,
-    `xp ${progAlice.xp} · ${progAlice.eventCount} event`,
-  );
-
   const outcomesAlice = await getOutcomeCount(alice);
   check(
     "getOutcomeCount only calibrates on its own outcomes",
     outcomesAlice === 1,
     `n = ${outcomesAlice}`,
-  );
-
-  // The streak reads the last CONTACT and TAKE events, day by day. Bob works his
-  // file on three consecutive days, Alice only today: the two are impossible to
-  // confuse, and a streak query missing its owner would read three for Alice.
-  const DAY_MS = 86_400_000;
-  const nowMs = Date.now();
-  await db.insert(events).values([
-    {
-      ownerId: bob.id,
-      targetId: atBob.targetId,
-      kind: "contact",
-      xp: 2,
-      occurredAt: new Date(nowMs - DAY_MS),
-    },
-    {
-      ownerId: bob.id,
-      targetId: atBob.targetId,
-      kind: "contact",
-      xp: 2,
-      occurredAt: new Date(nowMs - 2 * DAY_MS),
-    },
-  ]);
-
-  const reportAlice = await getSeasonReport(alice);
-  const reportBob = await getSeasonReport(bob);
-
-  check(
-    "getSeasonReport returns only its own season",
-    reportAlice.capturedCents === 350_000 && reportAlice.capturesCount === 1,
-    `${reportAlice.capturedCents} c`,
-  );
-  check(
-    "getSeasonReport reads a three-day run as a three-day streak",
-    reportBob.streak.days === 3 && reportBob.streak.aliveToday,
-    `bob ${reportBob.streak.days} day(s)`,
-  );
-  check(
-    "getSeasonReport counts the streak on its own events only",
-    reportAlice.streak.days === 1,
-    `alice ${reportAlice.streak.days} day(s), bob ${reportBob.streak.days}`,
-  );
-  check(
-    "getSeasonReport totals progress for one owner only",
-    reportAlice.xp === 40 && reportBob.xp === 44,
-    `alice ${reportAlice.xp} xp · bob ${reportBob.xp} xp`,
-  );
-
-  // getProgression runs the same streak sub-query as getSeasonReport, and the
-  // leak was in only one of the two. Re-read both AFTER the seeding above, or
-  // the twin stays unguarded: the earlier progAlice predates those events.
-  const streakProgAlice = await getProgression(alice);
-  const streakProgBob = await getProgression(bob);
-  check(
-    "getProgression counts the streak on its own events only",
-    streakProgAlice.streak.days === 1 && streakProgBob.streak.days === 3,
-    `alice ${streakProgAlice.streak.days} day(s), bob ${streakProgBob.streak.days}`,
   );
 
   // Ledger and sectors
@@ -350,16 +283,14 @@ async function main() {
 
   const fresh = await createOwner("fresh");
   const freshFrame = await listTargetsInBbox(fresh, FRAME);
-  const freshProgress = await getProgression(fresh);
   const bankedFresh = await getBankedTotalCents(fresh);
 
   check(
     "a fresh account sees an empty territory",
     freshFrame.rows.length === 0 &&
       freshFrame.total === 0 &&
-      freshProgress.xp === 0 &&
       bankedFresh.cents === 0,
-    "0 target · 0 xp · 0 c",
+    "0 target · 0 c",
   );
 
   // Ledger order: Postgres has no `rowid`, hence the `seq` column.
@@ -384,14 +315,12 @@ async function main() {
       ownerId: fresh.id,
       targetId: targetOrder.id,
       kind: "study",
-      xp: 1,
       occurredAt: sameInstant,
     });
     await db.insert(events).values({
       ownerId: fresh.id,
       targetId: targetOrder.id,
       kind: "contact",
-      xp: 2,
       occurredAt: sameInstant,
     });
 

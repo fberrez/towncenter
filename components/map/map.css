@@ -331,7 +331,7 @@
   min-height: var(--touch-target);
   padding: var(--space-2);
   border: 1px solid transparent;
-  border-left: 3px solid var(--rank-color, var(--border-1));
+  border-left: 3px solid var(--border-1);
   border-radius: var(--radius-2);
   background: transparent;
   color: var(--text-1);
@@ -343,8 +343,8 @@
     border-color var(--duration-hover) var(--curve);
 }
 
-/* Top row: the dot, the name taking all remaining width, the amount that
-   never shrinks. */
+/* Top row: the name taking all remaining width, the amount that never
+   shrinks. */
 .target-row__top {
   display: flex;
   align-items: center;
@@ -369,7 +369,7 @@
 .target-row[data-selected="yes"] {
   background: var(--surface-3);
   border-color: var(--border-2);
-  border-left-color: var(--rank-color, var(--accent));
+  border-left-color: var(--accent);
 }
 
 .target-row[data-state="taken"] {
@@ -379,14 +379,6 @@
 .target-row[data-state="withdrawn"],
 .target-row[data-state="dismissed"] {
   opacity: 0.6;
-}
-
-/* No halo in a list. The halo earns its place ON THE MAP, among hundreds of
-   dots; in a list already sorted by expectancy the top row is the top row, and
-   nine haloed rows read as nine stacked blurs. Rank stays double-encoded by
-   colour, diameter, ring and its name written beside it. */
-.target-row .dot--halo {
-  box-shadow: var(--dot-ring, none);
 }
 
 .target-row__name {
@@ -1098,8 +1090,8 @@ textarea.sheet__input {
   }
 }
 
-/* The head does not scroll: rank, name, both figures and the current step stay
-   in view whatever the open tab and whatever the scroll position. */
+/* The head does not scroll: name, both figures and the current step stay in
+   view whatever the open tab and whatever the scroll position. */
 .sheet__head {
   /* `flex: 0 1 auto` with a cap: at `0 0 auto` the head grew to 850 px on a
      1400 px screen and squeezed the tab below it to a slit. The cap is a `%`
@@ -1113,12 +1105,6 @@ textarea.sheet__input {
   padding: var(--space-3) var(--space-4);
   border-block-end: 1px solid var(--border-1);
   min-width: 0;
-}
-
-/* In a head we are trying to shorten, the rank chip does not need its full
-   plate padding. */
-.sheet__head .rarity--card {
-  padding: var(--space-2);
 }
 
 .sheet__head-top {

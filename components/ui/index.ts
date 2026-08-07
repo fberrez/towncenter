@@ -53,9 +53,6 @@ export {
   roundTo5,
 } from "./Difficulty";
 
-export { RarityTag, type RarityTagProps, RankDot, type RankDotProps } from "./RarityTag";
-export { StreakCard, type StreakCardProps } from "./StreakCard";
-export { LevelCard, type LevelCardProps } from "./LevelCard";
 export { Fact, type FactProps } from "./Fact";
 export {
   Source,

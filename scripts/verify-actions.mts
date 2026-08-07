@@ -35,7 +35,6 @@ import {
 } from "@/app/pricing/state";
 import {
   getPriceGrid,
-  getProgression,
   getTargetDetail,
   getTargetRow,
 } from "@/app/queries";
@@ -175,7 +174,7 @@ async function readTarget(id: string) {
 
 async function ledgerOf(targetId: string) {
   return db
-    .select({ kind: events.kind, xp: events.xp, valueCents: events.valueCents })
+    .select({ kind: events.kind, valueCents: events.valueCents })
     .from(events)
     .where(eq(events.targetId, targetId))
     .orderBy(events.occurredAt, events.seq);
@@ -424,22 +423,18 @@ async function main() {
     ownerId: actor.id,
     targetId: undoTarget,
     kind: "study",
-    xp: 5,
     occurredAt: sameInstant,
   });
   await db.insert(events).values({
     ownerId: actor.id,
     targetId: undoTarget,
     kind: "contact",
-    xp: 9,
     occurredAt: sameInstant,
   });
 
-  const xpBeforeUndo = (await getProgression(actor)).xp;
   const firstUndo = await rollbackTargetAction(IDLE, form({ id: undoTarget }));
   const firstUndoResult = undone(firstUndo);
   const afterFirstUndo = await ledgerOf(undoTarget);
-  const xpAfterUndo = (await getProgression(actor)).xp;
 
   check(
     "two facts in the same second: the LAST is erased",
@@ -456,11 +451,6 @@ async function main() {
     firstUndoResult?.to === "studied" &&
       (await readTarget(undoTarget)).state === "studied",
     `back to ${firstUndoResult?.to ?? "?"}`,
-  );
-  check(
-    "the erased fact's XP is given back, exactly",
-    firstUndoResult?.xpReturned === 9 && xpAfterUndo === xpBeforeUndo - 9,
-    `${xpBeforeUndo} → ${xpAfterUndo}`,
   );
 
   const secondUndo = await rollbackTargetAction(IDLE, form({ id: undoTarget }));
@@ -490,7 +480,6 @@ async function main() {
     ownerId: actor.id,
     targetId: wonTarget,
     kind: "take",
-    xp: 40,
     valueCents: 350_000,
     occurredAt: sameInstant,
   });
@@ -498,7 +487,6 @@ async function main() {
     ownerId: actor.id,
     targetId: wonTarget,
     kind: "withdrawal",
-    xp: 12,
     occurredAt: sameInstant,
   });
 
@@ -522,7 +510,7 @@ async function main() {
     undone(undoTake)?.erasedValueCents === 350_000 &&
       afterTakeUndo.capturedAt === null &&
       afterTakeUndo.state === "spotted",
-    `${undone(undoTake)?.erasedValueCents} cents leave the season`,
+    `${undone(undoTake)?.erasedValueCents} cents erased`,
   );
 
   const spottedOnly = await seedTarget(actor, "spotted");
@@ -530,7 +518,6 @@ async function main() {
     ownerId: actor.id,
     targetId: spottedOnly,
     kind: "survey",
-    xp: 1,
   });
   const undoSurvey = await rollbackTargetAction(IDLE, form({ id: spottedOnly }));
   check(
@@ -540,34 +527,17 @@ async function main() {
     undoSurvey.message ?? "",
   );
 
-  // XP: a strictly positive integer, and the total rises by exactly that.
-
   const flow = await seedTarget(actor, "flow");
-  const xpBefore = (await getProgression(actor)).xp;
   const studied = await advanceTargetAction(
     IDLE,
     form({ id: flow, to: "studied", note: "seen from the street" }),
   );
   const studiedResult = advanced(studied);
-  const xpAfter = (await getProgression(actor)).xp;
 
   check(
-    "advancing a step logs the fact and earns XP",
+    "advancing a step logs the fact",
     studied.status === "success" && studiedResult?.event === "study",
     studied.message ?? "",
-  );
-  check(
-    "the XP earned is a strictly positive integer",
-    typeof studiedResult?.xp === "number" &&
-      Number.isInteger(studiedResult.xp) &&
-      studiedResult.xp > 0,
-    `${studiedResult?.xp} xp`,
-  );
-  check(
-    "the total rises by EXACTLY what was earned",
-    xpAfter === xpBefore + (studiedResult?.xp ?? -1) &&
-      studiedResult?.totalXp === xpAfter,
-    `${xpBefore} → ${xpAfter}`,
   );
 
   // Idempotence: a double click must double nothing.

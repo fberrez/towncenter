@@ -553,3 +553,23 @@ export function explainPlaceScore(score: PlaceScore): string {
   const expectancy = formatEuros(score.expectancyCents, { decimals: "never" });
   return `${price} That is ${value} over twelve months. ${success} Expected value: ${expectancy}.`;
 }
+
+// a one-line reason for the loot figure, short enough for a list row or a map
+// card. An off-grid target is not a zero-euro one: its expectancy is zero by
+// construction, so the establishment count stands in for it instead.
+export function lootReason(
+  score: PlaceScore,
+  establishmentCount: number | null = null,
+): string {
+  if (score.price.kind === "off-grid") {
+    const fact =
+      establishmentCount !== null && establishmentCount >= 2
+        ? `${establishmentCount} open establishments`
+        : "one address, scope to confirm";
+    return `off-grid · ${fact}`;
+  }
+
+  const expectancy = formatEuros(score.expectancyCents, { decimals: "never" });
+  const value = formatEuros(score.price.value12MonthsCents, { decimals: "never" });
+  return `expected ${expectancy} · ${score.success.percent} % of ${value}`;
+}

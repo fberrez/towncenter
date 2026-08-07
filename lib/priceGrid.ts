@@ -92,3 +92,10 @@ export function readPriceGrid(value: unknown): PriceGrid {
   const parsed = PRICE_GRID_SCHEMA.safeParse(value);
   return parsed.success ? parsed.data : DEFAULT_PRICE_GRID;
 }
+
+// the value of a full site plus a year of hosting: what "a normal deal" is
+// worth under this grid. Measured against another grid, an account selling
+// higher would see every target read as small.
+export function standardDealCents(grid: PriceGrid = DEFAULT_PRICE_GRID): number {
+  return grid.fullSiteCents + grid.valueHorizonMonths * grid.recurringBaseCents;
+}
