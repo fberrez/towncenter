@@ -15,6 +15,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme}
+      richColors
       className="toaster group"
       icons={{
         success: (
@@ -39,6 +40,21 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
+          // The app has exactly two feedback colours (see globals.css: "No
+          // warning colour. Two states only: success, failure."). `info` and
+          // `warning` keep the neutral toast so only success/error stand out.
+          "--success-bg": "color-mix(in oklch, var(--success) 12%, var(--popover))",
+          "--success-border": "var(--success)",
+          "--success-text": "var(--success-text)",
+          "--error-bg": "color-mix(in oklch, var(--failure) 12%, var(--popover))",
+          "--error-border": "var(--failure)",
+          "--error-text": "var(--failure-text)",
+          "--info-bg": "var(--popover)",
+          "--info-border": "var(--border)",
+          "--info-text": "var(--popover-foreground)",
+          "--warning-bg": "var(--popover)",
+          "--warning-border": "var(--border)",
+          "--warning-text": "var(--popover-foreground)",
         } as React.CSSProperties
       }
       toastOptions={{
