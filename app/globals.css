@@ -1044,6 +1044,21 @@ table,
   width: 100%;
 }
 
+/* The busy state: a spinner on the leading edge, same size as the label it
+   sits beside. `currentColor` means it inherits each variant's ink — quiet's
+   `--text-2`, secondary's `--text-1` — instead of needing its own colour. */
+.button__spinner {
+  width: 1em;
+  height: 1em;
+  animation: button-spin 0.7s linear infinite;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ==========================================================================
    LOOT — an amount in euros, staged.
 

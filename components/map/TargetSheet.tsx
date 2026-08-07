@@ -391,6 +391,7 @@ export function TargetSheet({
             type="button"
             className="t-body field__action"
             disabled={inProgress}
+            aria-busy={enrichPending || undefined}
             onClick={() => {
               const data = new FormData();
               data.set("id", target.id);
