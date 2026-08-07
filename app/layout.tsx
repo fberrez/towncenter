@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Source_Serif_4 } from "next/font/google";
+import Script from "next/script";
 
 import { THEME_SCRIPT, DEFAULT_THEME } from "@/components/ui/theme";
 
@@ -98,10 +99,16 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Applies the saved theme BEFORE first paint. An inline <script> in
-            <head> is the only place this works: a React effect runs after, so
-            after the flash. */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* Applies the saved theme BEFORE first paint. `beforeInteractive` is
+            the only strategy that runs early enough: a React effect runs
+            after, so after the flash. A plain <script> works too, but React
+            warns that it "is never executed when rendering on the client" —
+            `next/script` is what Next.js actually recommends for this. */}
+        <Script
+          id="theme-script"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }}
+        />
       </head>
       {/* Two slow halos, above the paper gradient and UNDER all content, so the
           glass has something to refract. aria-hidden: this is light, not
