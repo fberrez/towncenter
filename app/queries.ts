@@ -132,7 +132,13 @@ export type TargetRow = {
   resistancePercent: number;
 };
 
-export type TargetSortKey = "expectancy" | "loot" | "odds" | "name" | "surveyed";
+export type TargetSortKey =
+  | "expectancy"
+  | "loot"
+  | "odds"
+  | "resistance"
+  | "name"
+  | "surveyed";
 export type SortDir = "asc" | "desc";
 
 export type TargetFilters = {
@@ -612,12 +618,17 @@ function sortRows(rows: TargetRow[], filters: TargetFilters): TargetRow[] {
     );
   }
 
+  // `resistance` is the RAW probability negated, never `resistancePercent`: that
+  // one is rounded to a step of 5, so a third of the file would tie and fall back
+  // to the alphabet. Same reason `odds` reads the raw value.
   const value = (row: TargetRow): number => {
     switch (sort) {
       case "loot":
         return row.score.price.value12MonthsCents;
       case "odds":
         return row.score.success.rawProbability;
+      case "resistance":
+        return -row.score.success.rawProbability;
       default:
         return row.score.expectancyCents;
     }
