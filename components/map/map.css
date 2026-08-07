@@ -79,6 +79,50 @@
   padding: var(--space-3);
 }
 
+/* Sticky rather than outside `.territory__rail-body`: the body owns the scroll
+   and the padding, so lifting the toolbar out would misalign it with the rows.
+   The opaque background is what a sticky element needs to not read as a ghost. */
+.target-toolbar {
+  position: sticky;
+  top: calc(var(--space-3) * -1);
+  z-index: 1;
+  display: flex;
+  gap: var(--space-2);
+  margin: calc(var(--space-3) * -1) calc(var(--space-3) * -1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border-1);
+}
+
+.target-toolbar[data-busy="yes"] {
+  opacity: 0.6;
+}
+
+.target-toolbar__button {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: space-between;
+  gap: var(--space-1);
+}
+
+/* The rail is about 250 px: the sort key is the first thing to give up its
+   width, and it is the pictogram that keeps the button readable. */
+.target-toolbar__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Shape, not colour, marks a filter that is not at its default: the palette
+   carries a single blue and it belongs to the figures. */
+.target-toolbar__dot {
+  flex: 0 0 auto;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 /* Without `position: relative` here, `.map` (`position: absolute; inset: 0`)
    anchors to `.territory__body` and spreads under the left rail. Nothing
    reports it: the rail stays in the DOM, its clicks are simply intercepted. */

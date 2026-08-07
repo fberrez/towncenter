@@ -14,6 +14,7 @@ import {
 import { TerritoryMap, type NafOption } from "@/components/map/TerritoryMap";
 import { requireUser } from "@/lib/accounts";
 import { DEFAULT_FRAME, frameToText, textToFrame } from "@/components/map/frame";
+import { parseView } from "@/components/map/view";
 import { unionBbox } from "@/lib/geo";
 import {
   SIRENE_EXTRA_NAF,
@@ -62,12 +63,26 @@ export default async function Page(props: PageProps<"/">) {
   const requestedTarget = first(params.target);
   const targetId = requestedTarget && UUID_PATTERN.test(requestedTarget) ? requestedTarget : null;
 
+  // Same rule as the target id above: `parseView` falls back to the default on
+  // anything it does not recognise, so no hand-edited value reaches a `where`.
+  const view = parseView({
+    sort: first(params.sort),
+    dir: first(params.dir),
+    show: first(params.show),
+  });
+
   // ensureGoogleRetention() runs from listTargetsInBbox, getTargetDetail and
   // getSeasonReport only: dropping the last of them from this list drops the
   // 30-day Google purge with it.
   const [inFrame, stats, sectors, front, progression, detail] =
     await Promise.all([
-      listTargetsInBbox(owner, frame),
+      listTargetsInBbox(owner, frame, {
+        sort: view.sort,
+        dir: view.dir,
+        states: view.states,
+      }),
+      // NOT filtered, deliberately: this is the frame's own count, and a filter
+      // that moved it would make the sector report something it does not hold.
       getZoneStats(owner, frame),
       earlySectors ? Promise.resolve(earlySectors) : listZones(owner, 24),
       listFront(owner, 5),
@@ -85,6 +100,7 @@ export default async function Page(props: PageProps<"/">) {
         account={owner}
         frame={frame}
         frameText={frameText}
+        view={view}
         targets={inFrame.rows}
         total={inFrame.total}
         truncated={inFrame.truncated}

@@ -75,6 +75,8 @@ import {
 import type { Bbox, LatLng } from "@/lib/types";
 
 import { ringOf, frameContains, frameToText } from "./frame";
+import { TargetToolbar } from "./TargetToolbar";
+import { writeView, type TargetView } from "./view";
 import {
   vertexSquare,
   stripBasemap,
@@ -709,6 +711,8 @@ export type TerritoryMapProps = {
   account: Account;
   frame: Bbox;
   frameText: string;
+  /** How the businesses are ordered and which states are shown. Lives in the URL. */
+  view: TargetView;
   targets: readonly TargetRow[];
   total: number;
   truncated: boolean;
@@ -730,6 +734,7 @@ export function TerritoryMap({
   account,
   frame,
   frameText,
+  view,
   targets,
   total,
   truncated,
@@ -802,14 +807,23 @@ export function TerritoryMap({
 
   // The screen's state lives in the URL.
   const goTo = useCallback(
-    (nextFrame: string, targetId: string | null) => {
+    (nextFrame: string, targetId: string | null, nextView: TargetView = view) => {
       const params = new URLSearchParams();
       params.set("frame", nextFrame);
       if (targetId) params.set("target", targetId);
+      // carried on every navigation, or panning the map would silently reset the
+      // sort back to expected value
+      writeView(params, nextView);
       // `typedRoutes` only validates LITERAL hrefs; a built URL needs `as Route`.
       beginTransition(() => router.replace(`/?${params.toString()}` as Route, { scroll: false }));
     },
-    [router],
+    [router, view],
+  );
+
+  // The frame and the open record are kept: changing the sort is not a move.
+  const changeView = useCallback(
+    (nextView: TargetView) => goTo(frameText, selectedId, nextView),
+    [goTo, frameText, selectedId],
   );
 
   // Whether the FULL sheet is open. Selecting a business shows the floating
@@ -1575,14 +1589,21 @@ export function TerritoryMap({
             onDeleted={handleSectorDeleted}
           />
         ) : (
-          <TargetList
-            targets={targets}
-            selectedId={selectedId}
-            onSelect={select}
-            total={total}
-            truncated={truncated}
-            className="territory__list"
-          />
+          <>
+            <TargetToolbar
+              view={view}
+              onChange={changeView}
+              busy={inTransition}
+            />
+            <TargetList
+              targets={targets}
+              selectedId={selectedId}
+              onSelect={select}
+              total={total}
+              truncated={truncated}
+              className="territory__list"
+            />
+          </>
         )}
       </div>
     </aside>
