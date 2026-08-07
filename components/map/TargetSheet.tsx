@@ -17,6 +17,7 @@ import {
   useState,
   useActionState,
 } from "react";
+import { toast } from "sonner";
 
 import {
   advanceTargetAction,
@@ -26,11 +27,7 @@ import {
   restoreTargetAction,
   rollbackTargetAction,
 } from "@/app/actions";
-import {
-  initialActionState,
-  type ActionState,
-  type AdvanceResult,
-} from "@/app/actionState";
+import { initialActionState, type AdvanceResult } from "@/app/actionState";
 import type { TargetDetail } from "@/app/queries";
 import {
   Button,
@@ -154,18 +151,67 @@ export function TargetSheet({
     if (advanceState.token === lastAdvanceToken.current) return;
     lastAdvanceToken.current = advanceState.token;
 
-    const result = advanceState.result;
-    if (advanceState.status !== "success" || !result || result.kind !== "advance") {
+    if (advanceState.status === "error") {
+      if (advanceState.message) toast.error(advanceState.message);
       return;
     }
 
+    const result = advanceState.result;
+    if (result?.kind !== "advance") return;
+
     setInput(null);
     // Only a take and its counterpart the withdrawal are stamped; marking a
-    // target as studied is not an event.
+    // target as studied is not an event, and gets a toast instead.
     if (result.to === "taken" || result.to === "withdrawn") {
       setStamp(result);
+    } else if (advanceState.message) {
+      toast.success(advanceState.message);
     }
   }, [advanceState]);
+
+  const lastDismissToken = useRef(dismissState.token);
+  useEffect(() => {
+    if (dismissState.token === lastDismissToken.current) return;
+    lastDismissToken.current = dismissState.token;
+    if (dismissState.status === "success" && dismissState.message) {
+      toast.success(dismissState.message);
+    } else if (dismissState.status === "error" && dismissState.message) {
+      toast.error(dismissState.message);
+    }
+  }, [dismissState]);
+
+  const lastRestoreToken = useRef(restoreState.token);
+  useEffect(() => {
+    if (restoreState.token === lastRestoreToken.current) return;
+    lastRestoreToken.current = restoreState.token;
+    if (restoreState.status === "success" && restoreState.message) {
+      toast.success(restoreState.message);
+    } else if (restoreState.status === "error" && restoreState.message) {
+      toast.error(restoreState.message);
+    }
+  }, [restoreState]);
+
+  const lastEnrichToken = useRef(enrichState.token);
+  useEffect(() => {
+    if (enrichState.token === lastEnrichToken.current) return;
+    lastEnrichToken.current = enrichState.token;
+    if (enrichState.status === "success" && enrichState.message) {
+      toast.success(enrichState.message);
+    } else if (enrichState.status === "error" && enrichState.message) {
+      toast.error(enrichState.message);
+    }
+  }, [enrichState]);
+
+  const lastUndoToken = useRef(undoState.token);
+  useEffect(() => {
+    if (undoState.token === lastUndoToken.current) return;
+    lastUndoToken.current = undoState.token;
+    if (undoState.status === "success" && undoState.message) {
+      toast.success(undoState.message);
+    } else if (undoState.status === "error" && undoState.message) {
+      toast.error(undoState.message);
+    }
+  }, [undoState]);
 
   // Every figure below is recomputed on read; none is stored.
   const price = target.score.price;
@@ -189,34 +235,6 @@ export function TargetSheet({
     ...(log.length > 0 ? (["log"] as const) : []),
     "computed",
   ];
-
-  // `useActionState` tokens are NOT comparable across actions: each counts from
-  // zero for its own action, so sorting the six states by token would tie and
-  // report the wrong message. We instead keep the message of whichever token
-  // just moved. React dispatches one action at a time, so it is zero or one.
-  const states = [advanceState, dismissState, restoreState, enrichState, undoState, noteState];
-  const seenTokens = useRef<number[]>(states.map((state) => state.token));
-  const [last, setLast] = useState<{
-    message: string;
-    status: ActionState["status"];
-  } | null>(null);
-
-  useEffect(() => {
-    const tokens = states.map((state) => state.token);
-    const previous = seenTokens.current;
-    seenTokens.current = tokens;
-
-    const moved = tokens.findIndex((token, index) => token !== previous[index]);
-    if (moved === -1) return;
-
-    const state = states[moved]!;
-    if (state.message !== null) {
-      setLast({ message: state.message, status: state.status });
-    }
-    // `states` is rebuilt on every render: the six states are the dependency,
-    // never the array holding them.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [advanceState, dismissState, restoreState, enrichState, undoState, noteState]);
 
   const inProgress =
     advancePending ||
@@ -244,7 +262,12 @@ export function TargetSheet({
   useEffect(() => {
     if (noteState.token === noteToken.current) return;
     noteToken.current = noteState.token;
-    if (noteState.status === "success") setEditing(null);
+    if (noteState.status === "success") {
+      setEditing(null);
+      if (noteState.message) toast.success(noteState.message);
+    } else if (noteState.status === "error" && noteState.message) {
+      toast.error(noteState.message);
+    }
   }, [noteState]);
 
   // The sheet is not remounted between businesses, it is the same node with new
@@ -789,7 +812,7 @@ export function TargetSheet({
                           >
                             Keep
                           </Button>
-                          <Button type="submit" variant="secondary" disabled={inProgress}>
+                          <Button type="submit" variant="danger" disabled={inProgress}>
                             {undoPending && <Spinner />}
                             Erase this fact
                           </Button>
@@ -1142,20 +1165,6 @@ export function TargetSheet({
           </div>
         ) : null}
 
-        {/* The server reply lives outside the panels so switching tabs does not
-            drop it, and is sticky at the bottom of the scroll container: placed
-            in normal flow it landed some two thousand pixels below the button
-            that triggered it, which reads as the action doing nothing. */}
-        {last?.message ? (
-          <p
-            className="t-body sheet__message"
-            data-status={last.status}
-            role="status"
-            aria-live="polite"
-          >
-            {last.message}
-          </p>
-        ) : null}
         {advanceState.fieldErrors.amount ? (
           <p className="t-body-s sheet__error">{advanceState.fieldErrors.amount}</p>
         ) : null}

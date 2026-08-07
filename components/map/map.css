@@ -1618,30 +1618,8 @@ button.sheet__step:disabled {
   gap: var(--space-3);
 }
 
-/* Sticky, and that is a fix: after the split into tabs this message sat two
-   thousand pixels below the button that triggers it, inside a scrolling
-   container — displayed and invisible at once. The opaque background and the
-   hairline are not decorative: without them the text overlaps what scrolls
-   underneath. */
-.sheet__message {
-  position: sticky;
-  inset-block-end: 0;
-  z-index: 5;
-  margin-block-start: auto;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-2);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-2);
-}
-
-.sheet__message[data-status="error"],
 .sheet__error {
   color: var(--failure-text);
-}
-
-.sheet__message[data-status="success"] {
-  color: var(--success-text);
 }
 
 .sheet__stale {
