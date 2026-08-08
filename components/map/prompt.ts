@@ -86,7 +86,7 @@ export function sheetAsMarkdown(
   outcomeCount: number,
   now: Date = new Date(),
 ): string {
-  const { target, log, neighbours, sameRankInSector, sectorSize } = detail;
+  const { target, log, neighbours } = detail;
   const price = target.score.price;
   const success = target.score.success;
   const offGrid = price.kind === "off-grid";
@@ -202,12 +202,6 @@ export function sheetAsMarkdown(
         ? ""
         : ` — **not calibrated yet, n = ${outcomeCount}** (${CALIBRATION_MIN_OUTCOMES} real outcomes are needed; below that it is an opinion, not a measurement)`),
   );
-  rows.push(`- **Rank**: ${target.rarity.rank.label} — ${target.rarity.reason}`);
-  if (sectorSize > 0) {
-    rows.push(
-      `- **In its neighbourhood**: ${sameRankInSector} business${sameRankInSector > 1 ? "es" : ""} of this rank out of ${sectorSize} surveyed`,
-    );
-  }
   rows.push(`- **Approach state**: ${STATE_LABEL[target.state]}`);
   rows.push("");
 
@@ -296,7 +290,7 @@ export function sheetAsMarkdown(
     rows.push("");
     for (const neighbour of neighbours) {
       rows.push(
-        `- ${neighbour.name} — ${distance(neighbour.distanceMeters)} · ${neighbour.rankLabel} · ${STATE_LABEL[neighbour.state]}`,
+        `- ${neighbour.name} — ${distance(neighbour.distanceMeters)} · ${formatEuros(neighbour.expectancyCents, { decimals: "never" })} · ${STATE_LABEL[neighbour.state]}`,
       );
     }
   }

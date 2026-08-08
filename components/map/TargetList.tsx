@@ -5,7 +5,7 @@
 // It therefore offers exactly the same gestures as the map.
 
 import type { TargetRow } from "@/app/queries";
-import { Badge, RankDot, percent, resistanceBand } from "@/components/ui";
+import { Badge, percent, resistanceBand } from "@/components/ui";
 import { formatEuros } from "@/lib/format";
 
 import { STATE_LABEL } from "./text";
@@ -51,14 +51,12 @@ function Row({
       <button
         type="button"
         className="target-row"
-        data-rank={target.rarity.rank.level}
         data-state={target.state}
         data-selected={selected ? "yes" : "no"}
         aria-current={selected ? "true" : undefined}
         onClick={() => onSelect(target.id)}
       >
         <span className="target-row__top">
-          <RankDot rank={target.rarity.rank} aligned />
           <span className="t-title-3 target-row__name">{target.name}</span>
           {offGrid ? (
             showOffGrid ? (
@@ -73,9 +71,12 @@ function Row({
 
         <span className="target-row__bottom">
           <span className="t-body-s target-row__meta">
-            {target.rarity.rank.label}
-            {address ? ` · ${address}` : ""}
-            {target.state === "spotted" ? "" : ` · ${STATE_LABEL[target.state]}`}
+            {[
+              address,
+              target.state === "spotted" ? null : STATE_LABEL[target.state],
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </span>
           <span
             className="t-micro tnum target-row__resistance"

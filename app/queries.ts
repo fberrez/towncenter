@@ -2,8 +2,8 @@
 // compiler enforces the parameter, only the where clause enforces isolation.
 // A role grants nothing across accounts.
 
-// Loot, resistance, expected value and rank are never stored: they are
-// recomputed on every read. Progress is the opposite, frozen in events.xp.
+// Loot, resistance and expected value are never stored: they are recomputed
+// on every read.
 
 // Money is integer cents, ratings integer tenths. Everything returned is
 // serialisable: ISO strings, never Date objects, which a client cannot read back.
@@ -29,17 +29,6 @@ import {
   zones,
   type Target,
 } from "@/lib/db";
-import {
-  levelFor,
-  rarityOf,
-  seasonAt,
-  streakFrom,
-  type Level,
-  type Rank,
-  type RankKey,
-  type Rarity,
-  type Streak,
-} from "@/lib/game";
 import { areaKm2, distanceMeters, normalizeBbox, streetKey } from "@/lib/geo";
 import {
   CLUSTER_RADIUS_METERS,
@@ -48,11 +37,10 @@ import {
   MAX_TARGETS_FOR_STATS,
   MAX_TARGETS_IN_VIEW,
   MIN_CLUSTER_SIZE,
-  MIN_SECTOR_SIZE_FOR_SHARE,
 } from "@/lib/limits";
 import { ensureGoogleRetention } from "@/lib/retention";
 import { DEFAULT_PRICE_GRID, readPriceGrid } from "@/lib/priceGrid";
-import { scorePlace } from "@/lib/scoring";
+import { lootReason, scorePlace } from "@/lib/scoring";
 import {
   getAccountPlacesKey,
   maskKey,
@@ -128,7 +116,7 @@ export type TargetRow = {
   harvestedAt: string;
   proximity: ProximityFact;
   score: PlaceScore;
-  rarity: Rarity;
+  lootReason: string;
   resistancePercent: number;
 };
 
@@ -161,17 +149,12 @@ export type TargetNeighbour = {
   distanceMeters: number;
   state: TargetState;
   expectancyCents: number;
-  rankKey: RankKey;
-  rankLabel: string;
 };
 
 export type TargetDetail = {
   target: TargetRow;
   log: JournalEntry[];
   neighbours: TargetNeighbour[];
-  rankShareInSector: number | null;
-  sameRankInSector: number;
-  sectorSize: number;
 };
 
 export type ZoneStats = {
@@ -211,26 +194,9 @@ export type JournalEntry = {
   targetId: string;
   targetName: string;
   kind: EventKind;
-  xp: number;
   valueCents: number | null;
   note: string | null;
   occurredAt: string;
-};
-
-export type SeasonWindow = {
-  startsAt: string;
-  endsAt: string;
-  daysLeft: number;
-};
-
-export type Progression = {
-  xp: number;
-  level: Level;
-  streak: Streak;
-  season: SeasonWindow;
-  eventCount: number;
-  outcomeCount: number;
-  calibrated: boolean;
 };
 
 export type FrontLine = {
@@ -261,32 +227,6 @@ export type ZoneRow = {
   setAside: number;
   hold: number;
   capturedLootCents: number;
-};
-
-export type RankShare = {
-  key: RankKey;
-  label: string;
-  level: number;
-  count: number;
-};
-
-export type SeasonReport = {
-  season: SeasonWindow;
-  capturedCents: number;
-  capturesCount: number;
-  withdrawalsCount: number;
-  /** CENTS per month, ESTIMATED from the grid. Not a logged amount. */
-  recurringEstimatedCents: number;
-  inPlayCents: number;
-  inPlayCount: number;
-  averageResistance: number | null;
-  ranks: RankShare[];
-  xp: number;
-  level: Level;
-  streak: Streak;
-  calibrated: boolean;
-  outcomeCount: number;
-  truncated: boolean;
 };
 
 function toIso(value: Date | null): string | null {
@@ -464,7 +404,7 @@ function toTargetRow(
     harvestedAt: record.harvestedAt.toISOString(),
     proximity,
     score,
-    rarity: rarityOf(score, record.establishmentCount, grid),
+    lootReason: lootReason(score, record.establishmentCount),
     resistancePercent: 100 - score.success.percent,
   };
 }
@@ -746,9 +686,6 @@ export async function getTargetDetail(owner: Account, id: string): Promise<Targe
     + (${targets.lng} - ${record.lng}) * (${targets.lng} - ${record.lng}) * ${cos2}
   )`;
 
-  // Rank does not exist in the database, so it cannot be counted in SQL: the
-  // whole neighbourhood is loaded and counted, and `limit` is a safety bound,
-  // never an input to the percentage.
   const [neighbourRecords, log] =
     await Promise.all([
     db
@@ -774,28 +711,12 @@ export async function getTargetDetail(owner: Account, id: string): Promise<Targe
       distanceMeters: Math.round(distanceMeters(record, raw)),
       state: neighbour.state,
       expectancyCents: neighbour.score.expectancyCents,
-      rankKey: neighbour.rarity.rank.key,
-      rankLabel: neighbour.rarity.rank.label,
     }));
-
-  // numerator AND denominator count this business in
-  const sectorSize = neighbourRows.length + 1;
-  const sameRankInSector =
-    neighbourRows.filter(({ row }) => row.rarity.rank.key === target.rarity.rank.key)
-      .length + 1;
-
-  const rankShareInSector =
-    sectorSize >= MIN_SECTOR_SIZE_FOR_SHARE
-      ? Math.round((sameRankInSector / sectorSize) * 100)
-      : null;
 
   return {
     target,
     log,
     neighbours,
-    rankShareInSector,
-    sameRankInSector,
-    sectorSize,
   };
 }
 
@@ -963,7 +884,6 @@ export async function listJournal(
       targetId: events.targetId,
       targetName: targets.name,
       kind: events.kind,
-      xp: events.xp,
       valueCents: events.valueCents,
       note: events.note,
       occurredAt: events.occurredAt,
@@ -982,62 +902,10 @@ export async function listJournal(
     targetId: row.targetId,
     targetName: row.targetName,
     kind: row.kind,
-    xp: row.xp,
     valueCents: row.valueCents,
     note: row.note,
     occurredAt: row.occurredAt.toISOString(),
   }));
-}
-
-const STREAK_WINDOW = 800;
-
-function seasonWindow(now: Date = new Date()): SeasonWindow {
-  const season = seasonAt(now);
-  return {
-    startsAt: season.startsAt.toISOString(),
-    endsAt: season.endsAt.toISOString(),
-    daysLeft: season.daysLeft,
-  };
-}
-
-export async function getProgression(owner: Account): Promise<Progression> {
-  const now = new Date();
-
-  const [totals, streakRows, outcomeCount, _grid] =
-    await Promise.all([
-    db
-      .select({
-        xp: sql<number>`coalesce(sum(${events.xp}), 0)`,
-        total: sql<number>`count(*)`,
-      })
-      .from(events)
-      .where(eq(events.ownerId, owner.id)),
-    db
-      .select({ kind: events.kind, occurredAt: events.occurredAt })
-      .from(events)
-      .where(
-        and(
-          eq(events.ownerId, owner.id),
-          inArray(events.kind, ["contact", "take"]),
-        ),
-      )
-      .orderBy(desc(events.occurredAt))
-      .limit(STREAK_WINDOW),
-    getOutcomeCount(owner),
-    getPriceGrid(owner),
-  ]);
-
-  const xp = Number(totals[0]?.xp ?? 0);
-
-  return {
-    xp,
-    level: levelFor(xp),
-    streak: streakFrom(streakRows, now),
-    season: seasonWindow(now),
-    eventCount: Number(totals[0]?.total ?? 0),
-    outcomeCount,
-    calibrated: outcomeCount >= CALIBRATION_MIN_OUTCOMES,
-  };
 }
 
 const FOLLOWUP_AFTER_DAYS = 3;
@@ -1112,7 +980,7 @@ export async function listFront(owner: Account, limit = 5): Promise<FrontLine[]>
       return {
         ...line,
         action: "Call",
-        reason: `resistance ${target.resistancePercent} % · ${target.rarity.reason}`,
+        reason: `resistance ${target.resistancePercent} % · ${target.lootReason}`,
         priority: 2,
         overdue: false,
       };
@@ -1121,7 +989,7 @@ export async function listFront(owner: Account, limit = 5): Promise<FrontLine[]>
     return {
       ...line,
       action: "Walk past",
-      reason: target.rarity.reason,
+      reason: target.lootReason,
       priority: 3,
       overdue: false,
     };
@@ -1138,15 +1006,13 @@ export async function listFront(owner: Account, limit = 5): Promise<FrontLine[]>
 
   // expectancyCents is ZERO on an off-grid target by construction, so the sort
   // always puts them last while they are often the dearest deals in the file.
-  // One seat, never more, ranked among themselves by rank.
+  // One seat, never more, ranked among themselves by establishment count.
   const isOffGrid = (row: (typeof ranked)[number]): boolean =>
     row.target.score.price.kind === "off-grid";
 
   if (places >= 2 && !kept.some(isOffGrid)) {
     const bestOffGrid = [...ranked].filter(isOffGrid).sort((a, b) => {
       if (a.priority !== b.priority) return a.priority - b.priority;
-      const rank = b.target.rarity.rank.level - a.target.rarity.rank.level;
-      if (rank !== 0) return rank;
       const establishments =
         (b.target.establishmentCount ?? 0) - (a.target.establishmentCount ?? 0);
       if (establishments !== 0) return establishments;
@@ -1235,134 +1101,6 @@ export async function listZones(owner: Account, limit = 20): Promise<ZoneRow[]> 
   }
 
   return out;
-}
-
-export async function getSeasonReport(owner: Account): Promise<SeasonReport> {
-  await ensureGoogleRetention();
-
-  const nowDate = new Date();
-  const season = seasonAt(nowDate);
-
-  const [records, anchors, outcomeCount, captures, withdrawalRows, totals, streakRows, grid] =
-    await Promise.all([
-      db
-        .select()
-        .from(targets)
-        .where(eq(targets.ownerId, owner.id))
-        .limit(MAX_TARGETS_FOR_STATS + 1),
-      loadProximityAnchors(owner.id),
-      getOutcomeCount(owner),
-      db
-        .select({
-          targetId: events.targetId,
-          total: sql<number>`coalesce(sum(${events.valueCents}), 0)`,
-          count: sql<number>`count(*)`,
-        })
-        .from(events)
-        .where(
-          and(
-            eq(events.ownerId, owner.id),
-            eq(events.kind, "take"),
-            gte(events.occurredAt, season.startsAt),
-            lte(events.occurredAt, season.endsAt),
-          ),
-        )
-        .groupBy(events.targetId),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(events)
-        .where(
-          and(
-            eq(events.ownerId, owner.id),
-            eq(events.kind, "withdrawal"),
-            gte(events.occurredAt, season.startsAt),
-            lte(events.occurredAt, season.endsAt),
-          ),
-        ),
-      db
-        .select({ xp: sql<number>`coalesce(sum(${events.xp}), 0)` })
-        .from(events)
-        .where(eq(events.ownerId, owner.id)),
-      db
-        .select({ kind: events.kind, occurredAt: events.occurredAt })
-        .from(events)
-        .where(
-          and(
-            eq(events.ownerId, owner.id),
-            inArray(events.kind, ["contact", "take"]),
-          ),
-        )
-        .orderBy(desc(events.occurredAt))
-        .limit(STREAK_WINDOW),
-      getPriceGrid(owner),
-    ]);
-
-  const truncated = records.length > MAX_TARGETS_FOR_STATS;
-  const now = nowDate.toISOString();
-
-  const capturedByTarget = new Map<string, number>();
-  let capturedCents = 0;
-  let capturesCount = 0;
-  for (const row of captures) {
-    capturedCents += Number(row.total);
-    capturesCount += Number(row.count);
-    capturedByTarget.set(row.targetId, Number(row.total));
-  }
-
-  const rankCounts = new Map<RankKey, { rank: Rank; count: number }>();
-  let inPlayCents = 0;
-  let inPlayCount = 0;
-  let resistanceSum = 0;
-  let recurringEstimatedCents = 0;
-
-  for (const record of records.slice(0, MAX_TARGETS_FOR_STATS)) {
-    const row = toTargetRow(record, anchors, outcomeCount, now, grid);
-
-    if (capturedByTarget.has(row.id)) {
-      recurringEstimatedCents += row.score.price.recurringCents;
-    }
-
-    if (row.state === "taken" || row.state === "withdrawn" || row.state === "dismissed") {
-      continue;
-    }
-
-    inPlayCents += row.score.expectancyCents;
-    inPlayCount += 1;
-    resistanceSum += row.resistancePercent;
-
-    const key = row.rarity.rank.key;
-    const seen = rankCounts.get(key);
-    if (seen) seen.count += 1;
-    else rankCounts.set(key, { rank: row.rarity.rank, count: 1 });
-  }
-
-  const xp = Number(totals[0]?.xp ?? 0);
-
-  return {
-    season: seasonWindow(nowDate),
-    capturedCents,
-    capturesCount,
-    withdrawalsCount: Number(withdrawalRows[0]?.count ?? 0),
-    recurringEstimatedCents,
-    inPlayCents,
-    inPlayCount,
-    averageResistance:
-      inPlayCount > 0 ? Math.round(resistanceSum / inPlayCount) : null,
-    ranks: [...rankCounts.values()]
-      .sort((a, b) => b.rank.level - a.rank.level)
-      .map(({ rank, count }) => ({
-        key: rank.key,
-        label: rank.label,
-        level: rank.level,
-        count,
-      })),
-    xp,
-    level: levelFor(xp),
-    streak: streakFrom(streakRows, nowDate),
-    calibrated: outcomeCount >= CALIBRATION_MIN_OUTCOMES,
-    outcomeCount,
-    truncated,
-  };
 }
 
 // Pages calling these reads must set `export const dynamic = "force-dynamic"`,

@@ -39,8 +39,8 @@ No test framework; three executable benches under `scripts/`:
 ```bash
 npm run verify         # all three, in order
 npm run verify:scoring # pure, no database needed
-npm run verify:game    # pure, no database needed
 npm run verify:tenancy # needs a real Postgres
+npm run verify:actions # needs a real Postgres
 npm run lint           # eslint, zero errors required
 npm run typecheck      # next typegen && tsc --noEmit
 npm run build
@@ -177,7 +177,6 @@ By contributing you agree your changes are licensed under the
 - A director's personal contact details.
 - Storing or displaying a non-diffusible establishment.
 - Keeping Google Places fields past 30 days.
-- Removing or softening the "model's honesty" section on `/progression`.
 - `attributionControl: false`, or a panel over the map attribution.
 - Anything that makes one account's data visible to another.
 - A percentage with a decimal, or one that drops the "not calibrated" mention

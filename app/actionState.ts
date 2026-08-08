@@ -45,17 +45,9 @@ export type AdvanceResult = {
   from: TargetState;
   to: TargetState;
   event: EventKind;
-  /** points earned at that instant, journaled and never recomputed. */
-  xp: number;
-  totalXp: number;
-  level: number;
-  levelLabel: string;
-  levelUp: boolean;
   valueCents: number | null;
   /** null, never 0, when off grid: an off-grid target is not a 0 EUR target. */
   recurringCents: number | null;
-  streakDays: number;
-  streakExtended: boolean;
   /** the sector's hold as whole percentages, null when no sector contains it. */
   holdBefore: number | null;
   holdAfter: number | null;
@@ -78,7 +70,6 @@ export type UndoResult = {
   from: TargetState;
   to: TargetState;
   erasedEvent: EventKind;
-  xpReturned: number;
   erasedValueCents: number | null;
   remainingEvents: number;
 };

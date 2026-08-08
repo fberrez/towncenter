@@ -30,7 +30,7 @@ const FIELDS: EditedField[] = [
     key: "fullSiteCents",
     tab: "Full site",
     label: "Full site",
-    when: "One address, a site to build. The offer that sells most often, and the yardstick every rank is measured against.",
+    when: "One address, a site to build. The offer that sells most often, and the yardstick a target's dot size on the map is measured against.",
   },
   {
     key: "multiPageCents",

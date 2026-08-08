@@ -28,7 +28,9 @@ export function SignIn() {
   const [visible, setVisible] = useState(false);
 
   return (
-    <form action={action} noValidate>
+    // suppressHydrationWarning: password managers tag the form itself
+    // (data-dashlane-rid and similar) before React hydrates.
+    <form action={action} noValidate suppressHydrationWarning>
       {state.error ? (
         <p className={styles.alert} role="alert">
           {state.error}

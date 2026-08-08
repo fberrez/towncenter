@@ -15,6 +15,13 @@
       "when": 1785926684590,
       "tag": "0001_curious_kat_farrell",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786092394522,
+      "tag": "0002_exotic_warbird",
+      "breakpoints": true
     }
   ]
 }

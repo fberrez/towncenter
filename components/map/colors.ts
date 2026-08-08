@@ -20,8 +20,6 @@ export type BasemapPalette = {
 
 export type MapPalette = {
   theme: Theme;
-  /** index 0 = rank I. all five are equal: rank is encoded by dot diameter. */
-  ranks: [string, string, string, string, string];
   acc: string;
   /**
    * anything painted on the map takes `accentMark`, anything written takes
@@ -44,7 +42,6 @@ export type MapPalette = {
 // must stay identical to the light theme of `globals.css`.
 const FALLBACK_PALETTE: MapPalette = {
   theme: "light",
-  ranks: ["#0055ba", "#0055ba", "#0055ba", "#0055ba", "#0055ba"],
   acc: "#0055ba",
   accentMark: "#0055ba",
   success: "#006e30",
@@ -86,13 +83,6 @@ export function readPalette(): MapPalette {
 
   return {
     theme,
-    ranks: [
-      token("--rank-1", FALLBACK_PALETTE.ranks[0]),
-      token("--rank-2", FALLBACK_PALETTE.ranks[1]),
-      token("--rank-3", FALLBACK_PALETTE.ranks[2]),
-      token("--rank-4", FALLBACK_PALETTE.ranks[3]),
-      token("--rank-5", FALLBACK_PALETTE.ranks[4]),
-    ],
     acc: token("--accent", FALLBACK_PALETTE.acc),
     accentMark: token("--accent-mark", FALLBACK_PALETTE.accentMark),
     success: token("--success", FALLBACK_PALETTE.success),

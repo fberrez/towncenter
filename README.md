@@ -1,6 +1,6 @@
 # Towncenter
 
-**Neighbourhood-business prospecting, played as territory conquest.**
+**Neighbourhood-business prospecting on a map.**
 
 Draw a sector on a map; it fills with every business registered there, from the
 French national company register — free and key-less. Each becomes a **target**
@@ -75,7 +75,7 @@ Full descriptions in [`.env.example`](.env.example).
 | OpenFreeMap tiles | no | The map |
 | **Google Places (New)** | **yes** | Rating, review count, price level, phone, opening hours |
 
-Everything else — harvesting, scoring, map, game, ledger — is free and
+Everything else — harvesting, scoring, map, ledger — is free and
 key-less. **Enrichment has no working key-less mode**: `targets.website_url`
 only comes from Google Places, so without a key the site audit never runs.
 
@@ -106,7 +106,7 @@ Enforced in code, not negotiable:
 
 ```bash
 npm run lint        # eslint, zero errors required
-npm run verify      # scoring, game, tenant isolation (needs the database)
+npm run verify      # scoring, tenant isolation (needs the database)
 npm run typecheck   # next typegen && tsc --noEmit
 npm run build
 ```

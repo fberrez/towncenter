@@ -43,7 +43,6 @@ import {
   type Target,
 } from "@/lib/db";
 import { formatEuros } from "@/lib/format";
-import { levelFor, streakFrom, xpFor } from "@/lib/game";
 import { normalizeBbox } from "@/lib/geo";
 import { ENRICH_BATCH_SIZE } from "@/lib/limits";
 import { harvestSlice, openZone, resumeZone } from "@/lib/harvest";
@@ -65,7 +64,7 @@ import {
   type TargetState,
 } from "@/lib/types";
 
-import { bboxCondition, getPriceGrid, getTargetRow } from "./queries";
+import { bboxCondition, getTargetRow } from "./queries";
 
 import type {
   ActionResult,
@@ -347,9 +346,6 @@ export async function harvestZoneAction(
   let bbox: Bbox;
   let nafCodes: readonly string[];
   let alreadyFound = 0;
-  // carried over so the harvest ceiling applies to the whole sector rather than
-  // to each twenty-five-page slice
-  let alreadyNew = 0;
 
   if (input.zoneId) {
     // Resuming without a page would restart at page 1. The upsert is idempotent,
@@ -379,7 +375,6 @@ export async function harvestZoneAction(
     bbox = resumed.bbox;
     nafCodes = resumed.nafCodes;
     alreadyFound = resumed.targetsFound;
-    alreadyNew = resumed.targetsNew;
   } else {
     if (!input.frame) {
       return fail(
@@ -416,7 +411,6 @@ export async function harvestZoneAction(
     nafCodes,
     startPage: input.page ?? 1,
     alreadyFound,
-    alreadyNew,
   });
 
   const result: SurveyResult = {
@@ -1107,36 +1101,14 @@ export async function advanceTargetAction(
     valueCents = amountCents;
   }
 
-  // the state BEFORE, so the result can say what changed
   const now = new Date();
-  const [xpRows, streakRows] = await Promise.all([
-    db
-      .select({ xp: sql<number>`coalesce(sum(${events.xp}), 0)` })
-      .from(events)
-      .where(eq(events.ownerId, owner.id)),
-    db
-      .select({ kind: events.kind, occurredAt: events.occurredAt })
-      .from(events)
-      .where(
-        and(
-          eq(events.ownerId, owner.id),
-          inArray(events.kind, ["contact", "take"]),
-        ),
-      )
-      .orderBy(desc(events.occurredAt))
-      .limit(800),
-  ]);
-
-  const xpBefore = Number(xpRows[0]?.xp ?? 0);
-  const streakBefore = streakFrom(streakRows, now);
 
   // The `where` also matches on the state we read, so a double click or two tabs
   // on the same record cannot log the same fact twice: the second write finds no
   // row in the expected state.
   const patch: Partial<NewTarget> = { state: to, updatedAt: now };
 
-  // capturedAt is what files a take into a season. Set only on a take, and left
-  // untouched everywhere else.
+  // Set only on a take, and left untouched everywhere else.
   if (to === "taken") patch.capturedAt = now;
 
   const updated = await db
@@ -1161,28 +1133,15 @@ export async function advanceTargetAction(
   }
 
   const score: PlaceScore = row.score;
-  // Progress is LOGGED: weighed against the account's grid at the moment of the
-  // fact, and never recomputed afterwards.
-  const xp = xpFor(kind, score, await getPriceGrid(owner));
 
   await db.insert(events).values({
     ownerId: owner.id,
     targetId: id,
     kind,
-    xp,
     valueCents,
     note,
     occurredAt: now,
   });
-
-  const xpAfter = xpBefore + xp;
-  const levelBefore = levelFor(xpBefore);
-  const levelAfter = levelFor(xpAfter);
-
-  const streakAfter = streakFrom(
-    [...streakRows, { kind, occurredAt: now }],
-    now,
-  );
 
   const hold = await holdAround(
     owner.id,
@@ -1197,19 +1156,12 @@ export async function advanceTargetAction(
     from,
     to: to,
     event: kind,
-    xp,
-    totalXp: xpAfter,
-    level: levelAfter.level,
-    levelLabel: levelAfter.label,
-    levelUp: levelAfter.level > levelBefore.level,
     valueCents,
     // An ESTIMATE from the grid, never a logged amount: events.valueCents holds
     // the one-off take, not the subscription. Off-grid it is null and never
     // zero — "+ 0 €/month" would assert there is no recurring revenue, when
     // off-grid means exactly that it is not priced yet.
     recurringCents: score.price.kind === "grid" ? score.price.recurringCents : null,
-    streakDays: streakAfter.days,
-    streakExtended: streakAfter.days > streakBefore.days,
     holdBefore: hold.before,
     holdAfter: hold.after,
     zoneLabel: hold.label,
@@ -1280,7 +1232,6 @@ export async function rollbackTargetAction(
     .select({
       id: events.id,
       kind: events.kind,
-      xp: events.xp,
       valueCents: events.valueCents,
     })
     .from(events)
@@ -1340,9 +1291,9 @@ export async function rollbackTargetAction(
     .update(targets)
     .set({
       state: revertedTo,
-      // leaving capturedAt on a business that is no longer taken would count the
-      // season on an erased signature; when the state stays `taken` the column
-      // already holds the right date
+      // leaving capturedAt on a business that is no longer taken would count an
+      // erased signature in the banked total; when the state stays `taken` the
+      // column already holds the right date
       capturedAt: revertedTo === "taken" ? record.capturedAt : null,
       updatedAt: new Date(),
     })
@@ -1355,7 +1306,6 @@ export async function rollbackTargetAction(
     from: record.state,
     to: revertedTo,
     erasedEvent: last.kind,
-    xpReturned: last.xp,
     erasedValueCents: last.valueCents,
     remainingEvents: remainingFacts.length,
   };
@@ -1364,12 +1314,12 @@ export async function rollbackTargetAction(
 
   const currencyNote =
     last.valueCents !== null
-      ? ` The ${formatEuros(last.valueCents, { decimals: "never" })} take leaves the season report.`
+      ? ` The ${formatEuros(last.valueCents, { decimals: "never" })} take leaves the signed total.`
       : "";
 
   return done(
     previous,
-    `${record.name} goes back to “${STATE_LABEL[revertedTo]}”. The fact was erased from the log, ${last.xp} progress points returned.${currencyNote}`,
+    `${record.name} goes back to “${STATE_LABEL[revertedTo]}”. The fact was erased from the log.${currencyNote}`,
     result,
   );
 }
@@ -1418,7 +1368,7 @@ async function holdAround(
 
 // Dismissing loses nothing and no column remembers the previous state: it is
 // rebuilt from the ledger on restore, the same principle as the score. Neither
-// dismissing nor restoring logs a fact or earns progress.
+// dismissing nor restoring logs a fact.
 
 /** The state a logged fact implies. `reply` means `engaged`: they answered. */
 const STATE_FOR_EVENT: Record<EventKind, TargetState> = {
@@ -1478,8 +1428,8 @@ export async function dismissTargetAction(
   }
 
   if (record.state === "taken") {
-    // a take would leave the hold denominator and the season report: the figure
-    // would drop without anything having happened
+    // a take would leave the hold denominator: the figure would drop without
+    // anything having happened
     return fail(
       previous,
       `${record.name} is a take: it is won and cannot be set aside.`,

@@ -219,8 +219,8 @@ function GridStep({ facts }: { facts: OnboardingFacts }) {
       <Badge asChild><h2>Price grid</h2></Badge>
       <p className="t-body">
         Every amount on the map comes from your grid: the loot on a target, the
-        treasure of a sector, the rank of a business. The default grid ships
-        with the product — one freelancer&rsquo;s real rates, a starting point.
+        treasure of a sector. The default grid ships with the product — one
+        freelancer&rsquo;s real rates, a starting point.
       </p>
       {facts.hasCustomGrid ? (
         <p className="t-body-s tone-2">
