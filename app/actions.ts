@@ -32,7 +32,7 @@ import {
 } from "drizzle-orm";
 import { z } from "zod";
 
-import { STATE_LABEL } from "@/components/map/text";
+import { plural, STATE_LABEL } from "@/components/map/text";
 import {
   db,
   events,
@@ -64,12 +64,13 @@ import {
   type TargetState,
 } from "@/lib/types";
 
-import { getTargetRow } from "./queries";
+import { bboxCondition, getTargetRow } from "./queries";
 
 import type {
   ActionResult,
   ActionState,
   AdvanceResult,
+  DeleteZoneResult,
   DismissResult,
   EnrichResult,
   SurveyResult,
@@ -1578,6 +1579,68 @@ export async function renameZoneAction(
     label === null
       ? "Name cleared: the sector goes back to its date."
       : `Sector renamed “${label}”.`,
+    result,
+  );
+}
+
+/**
+ * Deletes a sector AND every business found inside its bbox — a target has no
+ * foreign key to a zone, membership is geographic, so this is the only way to
+ * take the businesses with it. Their events cascade with them via
+ * `events.targetId`'s `onDelete: "cascade"`. Both deletes run in one
+ * transaction: a sector must never survive without its businesses, or vanish
+ * while they linger. There is no undo; `DELETE_ZONE_FIELDS`: `id`.
+ */
+export async function deleteZoneAction(
+  previous: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const owner = await requireUser();
+
+  const values = { id: field(formData, "id") };
+  const parsed = targetSchema.safeParse(values);
+
+  if (!parsed.success) {
+    return fail(previous, "Sector refused.", fieldErrorsFrom(parsed.error), values);
+  }
+
+  const [zone] = await db
+    .select({ id: zones.id, label: zones.label, bbox: zones.bbox })
+    .from(zones)
+    .where(and(eq(zones.ownerId, owner.id), eq(zones.id, parsed.data.id)))
+    .limit(1);
+
+  if (!zone) {
+    return fail(previous, "Sector not found.", {}, values);
+  }
+
+  const targetsDeleted = await db.transaction(async (tx) => {
+    const removed = await tx
+      .delete(targets)
+      .where(bboxCondition(owner.id, zone.bbox))
+      .returning({ id: targets.id });
+
+    await tx
+      .delete(zones)
+      .where(and(eq(zones.ownerId, owner.id), eq(zones.id, zone.id)));
+
+    return removed.length;
+  });
+
+  const result: DeleteZoneResult = {
+    kind: "delete-zone",
+    zoneId: zone.id,
+    label: zone.label,
+    targetsDeleted,
+  };
+
+  refreshTree();
+
+  return done(
+    previous,
+    targetsDeleted > 0
+      ? `Sector deleted, along with ${plural(targetsDeleted, "business", "businesses")}.`
+      : "Sector deleted.",
     result,
   );
 }

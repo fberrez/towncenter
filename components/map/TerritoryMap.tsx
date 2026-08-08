@@ -334,6 +334,19 @@ function targetRadius(factor: number): ExpressionSpecification {
   ];
 }
 
+// These two expressions exist so `installLayers` and `repaint` share ONE
+// definition; a divergence between them only shows after a theme toggle.
+
+/** Fill: the accent, except for what has been taken. */
+function targetColor(palette: MapPalette): ExpressionSpecification {
+  return [
+    "case",
+    ["==", ["get", "state"], "taken"],
+    palette.success,
+    palette.accentMark,
+  ];
+}
+
 /**
  * The stroke carries the conquest state, and only that: with a single accent
  * tint it is the one coloured channel left on a dot, so selection is signalled
@@ -342,8 +355,6 @@ function targetRadius(factor: number): ExpressionSpecification {
 function targetStroke(palette: MapPalette): ExpressionSpecification {
   return [
     "case",
-    ["==", ["get", "state"], "taken"],
-    palette.success,
     ["==", ["get", "state"], "withdrawn"],
     palette.failure,
     ["==", ["get", "selected"], true],
@@ -541,7 +552,7 @@ function installLayers(map: MapLibreMap, palette: MapPalette): void {
           18,
           targetRadius(1.3),
         ],
-        "circle-color": palette.accentMark,
+        "circle-color": targetColor(palette),
         // What has left play fades; the DIAMETER always stays the same, so
         // the expected value is never lost.
         "circle-opacity": [
@@ -560,8 +571,6 @@ function installLayers(map: MapLibreMap, palette: MapPalette): void {
         // and the stroke is what keeps them countable.
         "circle-stroke-width": [
           "case",
-          ["==", ["get", "state"], "taken"],
-          2.5,
           ["==", ["get", "state"], "withdrawn"],
           1.5,
           ["==", ["get", "selected"], true],
@@ -654,7 +663,7 @@ function repaint(map: MapLibreMap, palette: MapPalette): void {
   map.setPaintProperty(MAP_LAYERS.sectorGhostLine, "line-color", palette.accentMark);
   map.setPaintProperty(MAP_LAYERS.sectorDraftLine, "line-color", palette.accentMark);
 
-  map.setPaintProperty(MAP_LAYERS.targetsDots, "circle-color", palette.accentMark);
+  map.setPaintProperty(MAP_LAYERS.targetsDots, "circle-color", targetColor(palette));
   map.setPaintProperty(
     MAP_LAYERS.targetsDots,
     "circle-stroke-color",
@@ -769,6 +778,13 @@ export function TerritoryMap({
     frame: Bbox;
     name: string;
   } | null>(null);
+
+  // Set when a sector is deleted while its survey banner is still showing:
+  // `surveyState` is a separate action from the delete and has no idea the
+  // zone it describes is gone, so this is checked by hand in `surveyRun`.
+  const [dismissedSurveyZoneId, setDismissedSurveyZoneId] = useState<string | null>(
+    null,
+  );
 
   const [railTab, setRailTab] = useState<"sectors" | "businesses">("sectors");
   const [railOpen, setRailOpen] = useState(false);
@@ -1430,7 +1446,18 @@ export function TerritoryMap({
     startTransition(() => enrich(data));
   }, [enrichState, enrich, frame]);
 
-  const surveyRun = surveyState.result?.kind === "harvest" ? surveyState.result : null;
+  // True only for the STALE result of the deleted zone, never for a survey
+  // genuinely in flight: `surveyPending` alone still shows "Survey running"
+  // for whatever runs next, even in the one-request window before its own
+  // result has landed and this flag would otherwise still read the old one.
+  const surveyDismissed =
+    surveyState.result?.kind === "harvest" &&
+    surveyState.result.zoneId === dismissedSurveyZoneId;
+
+  const surveyRun =
+    surveyState.result?.kind === "harvest" && !surveyDismissed
+      ? surveyState.result
+      : null;
   const enrichment =
     enrichState.result?.kind === "enrichment" ? enrichState.result : null;
 
@@ -1457,6 +1484,20 @@ export function TerritoryMap({
   const sectorHere =
     sectors.find((sector) => frameToText(sector.bbox) === frameText) ?? null;
   const nameHere = sectorHere?.label?.trim() || (sectorHere ? "this sector" : "this view");
+
+  // A deleted sector leaves two things pointed at nothing: its own survey
+  // banner, if still showing, and the `frame` param, if that was the view
+  // being looked at. `frame` drops rather than picks a replacement — the
+  // server recomputes its own default the same way it does on a bare `/`.
+  const handleSectorDeleted = useCallback(
+    (deleted: ZoneRow) => {
+      if (surveyRun?.zoneId === deleted.id) setDismissedSurveyZoneId(deleted.id);
+      if (frameToText(deleted.bbox) === frameText) {
+        beginTransition(() => router.replace("/" as Route, { scroll: false }));
+      }
+    },
+    [surveyRun, frameText, router],
+  );
 
   const resurveyThisView = () => {
     if (!viewFrame) return;
@@ -1535,6 +1576,7 @@ export function TerritoryMap({
               setRailOpen(false);
               goTo(frameToText(bbox), null);
             }}
+            onDeleted={handleSectorDeleted}
           />
         ) : (
           <TargetList
@@ -1804,7 +1846,7 @@ export function TerritoryMap({
             ) : null}
           </div>
 
-          {surveyRun || surveyPending || surveyState.message ? (
+          {surveyRun || surveyPending || (surveyState.message && !surveyDismissed) ? (
             <div className="map__work panel" role="status" aria-live="polite">
               <Badge asChild>
                 <h3>
@@ -1845,7 +1887,7 @@ export function TerritoryMap({
                 </>
               ) : null}
 
-              {surveyState.message ? (
+              {surveyState.message && !surveyDismissed ? (
                 <p className="t-body" data-status={surveyState.status}>
                   {surveyState.message}
                 </p>
@@ -1955,7 +1997,9 @@ export function TerritoryMap({
         <TargetSheet
           detail={detail}
           outcomeCount={outcomeCount}
-          onClose={() => select(null)}
+          // Falls back to the floating preview, not a full deselect — except
+          // without a map, which has no preview to fall back to.
+          onClose={() => (fallback ? select(null) : setSheetOpen(false))}
           onSelect={select}
         />
       ) : null}

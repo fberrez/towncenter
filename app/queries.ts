@@ -237,7 +237,7 @@ function toIso(value: Date | null): string | null {
 // that forgot it would not show an empty page, it would show someone else's
 // businesses. normalizeBbox first, or a sector drawn right to left gives
 // minLat > maxLat and a silently empty frame.
-function bboxCondition(ownerId: string, bbox: Bbox): SQL {
+export function bboxCondition(ownerId: string, bbox: Bbox): SQL {
   const box = normalizeBbox(bbox);
   return and(
     eq(targets.ownerId, ownerId),

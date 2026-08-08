@@ -81,13 +81,22 @@ export type SectorResult = {
   label: string | null;
 };
 
+// No undo: the confirmation dialog in the UI is the only guard.
+export type DeleteZoneResult = {
+  kind: "delete-zone";
+  zoneId: string;
+  label: string | null;
+  targetsDeleted: number;
+};
+
 export type ActionResult =
   | SurveyResult
   | EnrichResult
   | AdvanceResult
   | DismissResult
   | UndoResult
-  | SectorResult;
+  | SectorResult
+  | DeleteZoneResult;
 
 // useActionState puts the previous state FIRST, before the FormData:
 // (previousState: ActionState, formData: FormData) => Promise<ActionState>.
@@ -132,3 +141,4 @@ export const ADVANCE_FIELDS = ["id", "to", "amount", "note"] as const;
 export const DISMISS_FIELDS = ["id"] as const;
 export const UNDO_FIELDS = ["id"] as const;
 export const RENAME_FIELDS = ["id", "label"] as const;
+export const DELETE_ZONE_FIELDS = ["id"] as const;
